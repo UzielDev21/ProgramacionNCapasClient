@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html xmlns: th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Layout}">
+    <head>
+        <title>UsuarioIndex</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+            .table-container{
+                max-height: 480px;
+                overflow-y: auto;
+                border-radius: 30px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            }
+            .table-principal th {
+                background-color: #D5DEEB;
+            }
+            .table-principal{
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .btnBuscar{
+                height: 40px
+            }
+        </style>
+    </head>
+
+    <body class = "container" style="background-color:#A2DFE8" layout:fragment="body">
+
+        <div>
+            <div class="col-12, text-center" style="border: 2px solid #000; border-radius: 15px; font-size: 35px">Usuarios</div>
+
+<!--            <div>
+                <form method="POST" th:object="${Usuario}" th:action="@{UsuarioIndex}" >
+                    <b>Buscar: </b>
+
+                    <div class="row text-center">
+                        <div class="col-md-2"> 
+                            <label for="IdRol">Nombre: </label>
+                            <input class="form-control" type="text" id="NombreUsuario" name="NombreUsuario" placeholder="Juan" th:field="*{Nombre}">                    
+                        </div>
+
+                        <div class="col-md-3"> 
+                            <label for="IdRol">Apellido Paterno: </label>
+                            <input class="form-control" type="text" id="ApellidoPaterno" name="ApellidoPaterno" placeholder="Sanchéz" th:field="*{ApellidoPaterno}">                    
+                        </div>
+
+                        <div class="col-md-3"> 
+                            <label for="IdRol">Apellido Materno: </label>
+                            <input class="form-control" type="text" id="ApellidoMaterno" name="ApellidoMaterno" placeholder="Perez" th:field="*{ApellidoMaterno}">                    
+                        </div>
+
+                        <div class="col-md-3"> 
+                            <label for="IdRol">Selecciona tu Rol: </label>
+                            <select class="form-select" aria-label="Default select example" name="IdRol" id="IdRol" th:field="*{Rol.IdRol}">
+                                <option value=0> Escoge una opcion </option>
+                                <option th:each="rol : ${Roles}" th:value="${rol.IdRol}" th:text="${rol.NombreRol}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-1" style="display: flex"> 
+                            <button type="submit" class="btn btn-light btnBuscar"><i class="bi bi-search" style="flex-direction: column; margin-top: 5px"></i></button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>-->
+        </div>
+        
+        <div class="mb-2 mt-2">
+            <a class="btn btn-outline-dark" th:href="@{UsuarioIndex/Add}"> Registrar </a>
+            <a class="btn btn-outline-dark" th:href="@{UsuarioIndex/CargaMasiva}"> Carga Masiva</a>
+        </div>
+
+        <div class="table-principal table-container table-responsive ">
+            <table class="table table-striped table-hover" style="border: 5px; border-collapse: separate;">
+
+                <thead>
+                    <tr>
+                        <th colspan="4" class="text-center">Usuarios</th>
+                    </tr>
+
+                    <tr>
+                        <th class=" text-center">Acciones</th>
+                        <th class=" text-center">Datos de Usuario</th>
+                        <th class=" text-center">Datos de Contacto</th>
+                        <th class=" text-center">Domicilio(s) Registrado(s)</th>
+                    </tr>
+
+                </thead>
+                <tbody>
+                    <tr th:each = "Usuario: ${Usuarios}">
+                        <td>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+
+                                <img th:if='${Usuario.Imagen != null}'
+                                     th:src=" 'data:image/' + ${Usuario.extension} + ';base64,' + ${Usuario.Imagen}"
+                                     style="max-width: 150px; max-height: 150px; border-radius: 130px">
+
+                                <img th:if='${Usuario.Imagen == null}'
+                                     src=" https://icon-library.com/images/default-user-icon/default-user-icon-18.jpg"
+                                     style="max-width: 150px; max-height: 150px; border-radius: 130px">
+
+                            </div>
+
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:13px;">
+                                <div>   
+                                    <a th:href="@{/UsuarioIndex/Details/} + ${Usuario.IdUsuario}" class ="btn btn-outline-info" >
+                                        Editar
+                                    </a>
+                                </div>
+
+                                <div>
+                                    <a th:href="@{/UsuarioIndex/DeleteUsuario/{id}(id=${Usuario.IdUsuario})}" class ="btn btn-outline-danger">
+                                        Eliminar
+                                    </a>
+                                </div>
+                            </div>
+
+                        </td>
+                        <td>
+                            <div><b>UserName:</b> <span th:text="${Usuario.UserName}"></span></div>
+                            <div><b>Nombre:</b> <span th:text="| ${Usuario.Nombre} ${Usuario.ApellidoPaterno}  ${Usuario.ApellidoMaterno}|"></span></div>
+                            <div><b>Sexo:</b> <span th:text="${Usuario.Sexo}"></span></div>
+                            <div><b>Fecha de Nacimiento:</b> <span th:text="${Usuario.FechaNacimiento}"></span></div>
+                            <div class="text-center"><b><span th:text="${Usuario.Curp}"></span></b></div>
+                            <div style="display: flex; justify-content: right; align-items: flex-end">Rol:<span th:text="${Usuario.Rol.NombreRol}"></span></div>
+                        </td>
+                        <td>
+                            <div>Telefono: <span th:text="${Usuario.Telefono}"></span></div>
+                            <div>Celular: <span th:text="${Usuario.Celular}" ></span></div>
+                            <div>Email: <span th:text="${Usuario.Email}"></span></div>
+                        </td>
+                        <td>
+                            <div  th:each="Direccion, item : ${Usuario.Direcciones}">
+                                <div th:utext="|Direccion ${item.count}" style=" font-size: 15px; text-align: center;">Direccion</div>
+                                <div><b>Calle:</b> <span th:text="${Direccion.Calle}"></span></div>
+                                <div><b>Numero Interor:</b> <span th:text="${Direccion.NumeroInterior}"></span></div>
+                                <div><b>Numero exterior:</b> <span th:text="${Direccion.NumeroExterior}"></span></div>
+                                <div><b>Colonia:</b> <span th:text="${Direccion.Colonia.NombreColonia}"></span></div></br>
+                            </div>
+                        </td>
+                    </tr>    
+                </tbody>            
+            </table>
+        </div>
+
+        <script th:if="${successMessage}" th:inline="javascript">
+            Swal.fire({
+                title: [[${successMessage}]],
+                icon: "success",
+                draggable: true
+            });
+        </script>
+
+        <script th:if="${MsgDeleteSuccess}" th:inline="javascript">
+            Swal.fire({
+                title: [[${MsgDeleteSuccess}]],
+                icon: "success",
+                draggable: true
+            });
+        </script>
+
+        <script th:if="${MsgDeleteError}" th:inline="javascript">
+            Swal.fire({
+                title: [[${MsgDeleteError}]],
+                icon: "error",
+                draggable: true
+            });
+        </script>
+
+    </body>
+</html>

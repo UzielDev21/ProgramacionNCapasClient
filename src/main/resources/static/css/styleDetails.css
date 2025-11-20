@@ -1,0 +1,74 @@
+
+.divEncabezado{
+    border: 3px solid #000;
+    border-radius: 15px;
+    font-size: 35px
+}
+
+
+/***************************************************TABLA******************************************************/
+.divTabla{
+    border-radius: 50px;
+    overflow: hidden
+}
+
+.tablaUsuarios{
+    border-collapse: separate; 
+    border-spacing: 3px;
+}
+
+/***************************************************ENCABEZADO TABLA******************************************************/
+.thUSuario{
+    background-color: #D5DEEB !important;
+}
+
+.thDatosUSuario{
+    background-color: #D5DEEB !important;
+}
+
+.thDatosContacto{
+    background-color: #D5DEEB !important;
+}
+
+.tdDireciones{
+    background-color: #D5DEEB !important;
+}
+
+
+/**********************************SECCION IMAGEN*********************************************/
+.tdImg{
+    height: 350px ; 
+}
+
+.contenedorImg{
+    position: relative;
+    top: 20px;
+}
+
+img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-height: 150px;
+    max-height: 150px;
+    border-radius: 100px
+}
+
+/*************************************************************BOTONES****************************************/
+.btnEditar{
+    display: flex;
+    flex-direction: column
+}
+
+.btnEditarDatos{
+    margin-top: 30px
+}
+
+.btnEditarImagen{
+    margin-left: 150px;
+}
+
+/***************************************************MODAL USUARIO******************************************************/
+.divFormDatos{
+    
+}

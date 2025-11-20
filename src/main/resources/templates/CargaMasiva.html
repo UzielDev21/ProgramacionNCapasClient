@@ -1,0 +1,145 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Layout}">
+    <head>
+        <title>Carga Masiva</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+
+        </style>
+
+    </head>
+
+    <body layout:fragment="body" class="container">
+
+        <div class="Encabezado mb-4 mt-1">
+            <div class="col-12, text-center" style="border: 1px solid #000; border-radius: 10px; font-size: 35px">Carga Masiva</div>
+        </div>
+
+        <div class="container mt-3">
+            <div class=" mb-2">
+                <button id="mostrarFormulario" class="btn btn-outline-dark" onclick="mostrarFormulario()">Mostrar Formulario</button>
+            </div>
+
+            <div id="botones" class="row mb-2" style="display: none">
+                <div class="btn-group">
+                    <button class="btn btn-success col-md-6" id="btnExcel"><b>Excel</b></button>
+                    <button class="btn btn-primary col-md-6" id="btnTxt"><b>Txt</b></button>
+                </div>
+            </div>
+
+            <div id="formularioArchivo" class="mb-2" style="display: none">
+                <form method="POST" th:action="@{/UsuarioIndex/CargaMasiva}" enctype="multipart/form-data">
+                    <input type="file" id="archivo" name="archivo" accept=".xlsx, .txt">
+                    <button type="submit" class="btn btn-outline-dark" id="cargaMasiva">Subir archivo</button>
+                </form>
+            </div>
+
+        </div>
+
+
+
+        <div class="container">
+            <div class="table-responsive" th:if="${errores}">
+                <table class="table table-striped-column Tabla-UsuarioCarga" style="border: 5px; border-collapse: separate;">
+                    <thead>
+                        <tr>
+                            <th scope="col">Linea</th>
+                            <th scope="col">Campo</th>
+                            <th scope="col">Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="error : ${errores}">
+                            <td th:text="${error.linea}"></td>
+                            <td th:text="${error.campo}"></td>
+                            <td th:text="${error.descripcion}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${errores == false}">
+                <a class="btn btn-outline-danger" th:href="@{/UsuarioIndex/CargaMasiva/Procesar}">Procesar</a>
+            </div>
+        </div>
+        
+
+        <script th:if="${MsgCorrecto}" th:inline="javascript">
+                       Swal.fire({
+                               title: [[${MsgCorrecto}]],
+                               icon: "success",
+                               draggable: true
+                       });
+        </script>
+
+        <script th:if="${MsgError}" th:inline="javascript">
+                       Swal.fire({
+                               title: [[${MsgError}]],
+                               icon: "error",
+                               draggable: true
+                       });
+        </script>
+        
+        <script th:if="${MsgFallido}" th:inline="javascript">
+                       Swal.fire({
+                               title: [[${MsgFallido}]],
+                               icon: "error",
+                               draggable: true
+                       });
+        </script>
+
+        <script>
+
+            function mostrarFormulario() {
+                document.getElementById("mostrarFormulario").style.display = "none";
+                document.getElementById("botones").style.display = "block";
+            }
+            let tipoArchivo = "";
+
+            document.getElementById("btnExcel").addEventListener("click", function () {
+
+                tipoArchivo = "xlsx";
+
+                document.getElementById("formularioArchivo").style.display = "block";
+                document.getElementById("archivo").setAttribute("accept", ".xlsx");
+                document.getElementById("cargaMasiva").classList.remove("btn-outline-dark");
+                document.getElementById("cargaMasiva").classList.remove("btn-outline-primary");
+                document.getElementById("cargaMasiva").classList.add("btn-outline-success");
+            });
+
+            document.getElementById("btnTxt").addEventListener("click", function () {
+
+                tipoArchivo = "txt";
+
+                document.getElementById("formularioArchivo").style.display = "block";
+                document.getElementById("archivo").setAttribute("accept", ".txt");
+                document.getElementById("cargaMasiva").classList.remove("btn-outline-dark");
+                document.getElementById("cargaMasiva").classList.remove("btn-outline-success");
+                document.getElementById("cargaMasiva").classList.add("btn-outline-primary");
+            });
+
+            document.getElementById("archivo").addEventListener("change", function () {
+
+                if (this.files.length > 0) {
+                    var fileName = this.files[0].name;
+                    var fileExtension = fileName.split('.').pop().toLowerCase();
+
+                    if (fileExtension !== tipoArchivo) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: 'Archivo no valido',
+                            text: "Por favor, seleccione un archivo " + tipoArchivo.toUpperCase() + " valido",
+                            confirmButtonText: "Aceptar"
+                        });
+                        this.value = "";
+                    }
+
+                }
+            });
+
+        </script>
+
+    </body>
+</html>
