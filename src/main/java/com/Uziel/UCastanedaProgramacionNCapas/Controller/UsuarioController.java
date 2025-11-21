@@ -67,7 +67,7 @@ public class UsuarioController {
         if (responseEntity.getStatusCode().value() == 200) {
 
             Result result = responseEntity.getBody();
-            model.addAttribute("Usuarios", result.objects);
+            model.addAttribute("Usuarios", result.object);
 //            model.addAttribute("Roles", rolJPADAOImplementation.GetAllJPA().objects);
 //            model.addAttribute("Usuario", new Usuario());
 
