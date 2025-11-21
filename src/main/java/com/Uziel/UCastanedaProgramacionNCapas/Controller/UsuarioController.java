@@ -57,19 +57,29 @@ public class UsuarioController {
     @GetMapping
     public String Index(Model model) {
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Result<List<Usuario>>> responseEntity = restTemplate.exchange(urlBase + "/usuario",
+        RestTemplate restTemplateUsuario = new RestTemplate();
+        ResponseEntity<Result<List<Usuario>>> responseEntityUsuario = restTemplateUsuario.exchange(urlBase + "/usuario",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<Result<List<Usuario>>>() {
         });
 
-        if (responseEntity.getStatusCode().value() == 200) {
+        RestTemplate restTemplateRol = new RestTemplate();
+        ResponseEntity<Result<List<Rol>>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<List<Rol>>>() {
+        });
 
-            Result result = responseEntity.getBody();
-            model.addAttribute("Usuarios", result.object);
-//            model.addAttribute("Roles", rolJPADAOImplementation.GetAllJPA().objects);
-//            model.addAttribute("Usuario", new Usuario());
+        if (responseEntityUsuario.getStatusCode().value() == 200 && 
+                responseEntityRol.getStatusCode().value() == 200) {
+
+            Result resultUsuario = responseEntityUsuario.getBody();
+            model.addAttribute("Usuarios", resultUsuario.object);
+            
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.object);
+            model.addAttribute("Usuario", new Usuario());
 
         } else {
             return "Error";
@@ -285,22 +295,39 @@ public class UsuarioController {
 //        return usuarios;
 //    }
 ////------------------------------------------------------------------CARGA DETAILS------------------------------------------------------------------//
-//    @GetMapping("/Details/{IdUsuario}")
-//    public String Details(@PathVariable int IdUsuario, Model model) {
-//
-////        Result result = usuarioDAOImplementation.GetById(IdUsuario);
-//        Result resultJPA = usuarioJPADAOImplementation.GetByIdJPA(IdUsuario);
-//
-////        model.addAttribute("UsuarioId", result.object);
-////        model.addAttribute("Roles", rolDAOImplementation.GetAll().objects);
-////        model.addAttribute("Paises", paisDAOImplementation.GetAll().objects);
-//        model.addAttribute("UsuarioId", resultJPA.object);
-//        model.addAttribute("Roles", rolJPADAOImplementation.GetAllJPA().objects);
+    @GetMapping("/Details/{IdUsuario}")
+    public String Details(@PathVariable int IdUsuario, Model model) {
+        
+        RestTemplate restTemplate = new RestTemplate();
+        
+        ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
+                HttpMethod.GET,
+                HttpEntity.EMPTY, 
+                new ParameterizedTypeReference<Result<Usuario>>(){});
+        
+        ResponseEntity <Result<List<Rol>>> responseEntityRol = restTemplate.exchange(urlBase + "/roles", 
+                HttpMethod.GET, 
+                HttpEntity.EMPTY, 
+                new ParameterizedTypeReference<Result<List<Rol>>>(){});
+
+        if (responseEntityUsuario.getStatusCode().value() == 200 && 
+                responseEntityRol.getStatusCode().value() == 200) {
+
+            Result resultUsuario = responseEntityUsuario.getBody();
+            model.addAttribute("UsuarioId", resultUsuario.object);
+            
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.object);
+            
+        } else {
+            return "Error";
+        }
+        
 //        model.addAttribute("Paises", paisJPADAOImplementation.GetAllJPA().objects);
-//        model.addAttribute("Direccion", new Direccion());
-//
-//        return "UsuarioDetails";
-//    }
+        model.addAttribute("Direccion", new Direccion());
+
+        return "UsuarioDetails";
+    }
 //    
 ////------------------------------------------------------------------ACTUALIZAR IMAGEN------------------------------------------------------------------//
 //    @PostMapping("/Details/Imagen/{IdUsuario}")

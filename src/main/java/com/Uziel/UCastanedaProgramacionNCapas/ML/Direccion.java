@@ -1,10 +1,14 @@
     package com.Uziel.UCastanedaProgramacionNCapas.ML;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Direccion {
     private int IdDireccion;
     private String Calle;
     private String NumeroInterior;
     private String NumeroExterior;
+    
+    @JsonProperty("ColoniaJPA")
     public Colonia Colonia;
     
     public Direccion (){

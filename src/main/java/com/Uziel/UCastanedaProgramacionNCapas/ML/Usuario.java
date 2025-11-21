@@ -1,6 +1,7 @@
 package com.Uziel.UCastanedaProgramacionNCapas.ML;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -46,8 +47,10 @@ public class Usuario {
 
     private String extension;
 
+    @JsonProperty("RolJPA")
     public Rol Rol; //Propiedad de navegación
 
+    @JsonProperty("DireccionesJPA")
     public List<Direccion> Direcciones;
 
     public Usuario() {
