@@ -9,42 +9,20 @@ import org.springframework.format.annotation.DateTimeFormat;
 public class Usuario {
 
     private int IdUsuario; //Propiedad
-
-    
     private String UserName;
-
-    
     private String Nombre;
-
-
     private String ApellidoPaterno;
-
-
     private String ApellidoMaterno;
-
-
     private String Email;
-
-
     private String Password;
-
-
+    
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date FechaNacimiento;
-
-
     private String Sexo;
-
-
     private String Telefono;
-
-
     private String Celular;
-
-
     private String Curp;
-
     private String Imagen;
-
     private String extension;
 
     @JsonProperty("RolJPA")

@@ -221,7 +221,7 @@
                     <form method="POST" th:action="@{/UsuarioIndex/DetailsDireccion/{IdUsuario} (IdUsuario = ${UsuarioId.IdUsuario})}" th:object="${Direccion}" enctype="multipart/form-data">
                         <div class="modal-body">
 
-                            <input  id="IdUsuario" type="hidden" name="IdUsuario" th:value="${UsuarioId.IdUsuario}">
+                            <input  id="IdUsuario"  name="IdUsuario" th:value="${UsuarioId.IdUsuario}">
                             <input  id="IdDireccion"  name="IdDireccion" >
 
                             <div class="col-md-5">
@@ -352,7 +352,7 @@
                     $("#ddlPais").change(function () {
                     $.ajax({
                         type: 'GET',
-                        url: "/UsuarioIndex/Add/Estados/" + $("#ddlPais").val(),
+                        url: "http://localhost:8080/estados/" + $("#ddlPais").val(),
                         dataType: "json",
                         success: function (data, textStatus, jqXHR) {
 
@@ -376,7 +376,7 @@
             function cargaEstados(idPais, callback){
             
             $.ajax({
-                url: "/UsuarioIndex/Add/Estados/" + idPais,
+                url: "http://localhost:8080/estados/" + idPais,
                 type: "GET",
                 dataType: "json",
                 success: function(data, textStatus, jqXHR){
@@ -395,7 +395,7 @@
                 $("#ddlEstado").change(function () {
                     $.ajax({
                         type: 'GET',
-                        url: "/UsuarioIndex/Add/Municipios/" + $("#ddlEstado").val(),
+                        url: "http://localhost:8080/municipios/" + $("#ddlEstado").val(),
                         dataType: "json",
                         success: function (data, textStatus, jqXHR) {
 
@@ -416,7 +416,7 @@
             function cargaMunicipios(idEstado, callback){
             
             $.ajax({
-                url: "/UsuarioIndex/Add/Municipios/" + idEstado,
+                url: "http://localhost:8080/municipios/" + idEstado,
                 type: "GET",
                 dataType: "json",
                 success: function(data, textStatus, jqXHR){
@@ -435,14 +435,14 @@
                 $("#ddlMunicipio").change(function () {
                     $.ajax({
                         type: 'GET',
-                        url: "/UsuarioIndex/Add/Colonias/" + $("#ddlMunicipio").val(),
+                        url: "http://localhost:8080/colonias/" + $("#ddlMunicipio").val(),
                         dataType: "json",
                         success: function (data, textStatus, jqXHR) {
 
                             $("#ddlColonia").empty();
                             $("#ddlColonia").append("<option value=0> Escoge una opcion </option>");
                             $.each(data.objects, function (i, colonia) {
-                                $("#ddlColonia").append("<option value = " + colonia.idColonia + ">" + colonia.nombreColonia + "</option>");
+                                $("#ddlColonia").append("<option value = " + colonia.idColonia + ">" + colonia.nombre + "</option>");
                             });
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
@@ -455,7 +455,7 @@
             function cargaColonias(idMunicipio, callback){
             
             $.ajax({
-                url: "/UsuarioIndex/Add/Colonias/" + idMunicipio,
+                url: "http://localhost:8080/colonias/" + idMunicipio,
                 type: "GET",
                 dataType: "json",
                 success: function(data, textStatus, jqXHR){
@@ -484,7 +484,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "/UsuarioIndex/Details/Direccion/Delete/" + idDireccionDelete,
+                            url: "http://localhost:8080/direccion/" + idDireccionDelete,
                             type: 'GET',
                             dataType: "json",
                             success: function (data, textStatus, jqXHR) {
