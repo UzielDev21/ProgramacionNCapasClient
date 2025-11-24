@@ -462,7 +462,7 @@
                     $("#ddlColonia").empty().append('<option value=0> Escoge una opcion </option>')
                     
                     $.each(data.objects, function(i, colonia){
-                       $("#ddlColonia").append("<option value=" + colonia.idColonia + ">" + colonia.nombreColonia + "</option>"); 
+                       $("#ddlColonia").append("<option value=" + colonia.idColonia + ">" + colonia.nombre + "</option>"); 
                     });
                     if(callback) callback();
                 }
@@ -484,8 +484,8 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "http://localhost:8080/direccion/" + idDireccionDelete,
-                            type: 'GET',
+                            url: "/UsuarioIndex/Details/Direccion/Delete/" + idDireccionDelete,
+                            type: 'DELETE',
                             dataType: "json",
                             success: function (data, textStatus, jqXHR) {
                                 Swal.fire({

@@ -338,7 +338,6 @@ public class UsuarioController {
             return "Error";
         }
         
-//        model.addAttribute("Paises", paisJPADAOImplementation.GetAllJPA().objects);
         model.addAttribute("Direccion", new Direccion());
 
         return "UsuarioDetails";
@@ -418,30 +417,47 @@ public class UsuarioController {
             } else {
                 return "Error";
             }
-
+            
         } else {
-//            //Result result = DireccionDAOImplementation.DireccionUpdate(direccion, IdUsuario);
-//            Result resultJPA = direccionJPADAOImplementation.DireccionUpdateJPA(direccion);
-//
+            RestTemplate restTemplate = new RestTemplate();
+            HttpEntity<Direccion> direccionUpdate = new HttpEntity<>(direccion);
+            ResponseEntity <Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + direccion.getIdDireccion(),
+                    HttpMethod.PUT, 
+                    direccionUpdate, 
+                    new ParameterizedTypeReference<Result<Direccion>>() {});
+
+            if (responseEntityDireccion.getStatusCode().value() == 200) {
+                Result result = responseEntityDireccion.getBody();
+            } else {
+                return "error";
+            }
 //            if (resultJPA.correct) {
 //                redirectAttributes.addFlashAttribute("MsgExito", "Se edito correctamente la Direccion");
 //            } else {
 //                redirectAttributes.addFlashAttribute("MsgError", "No se pudo editar la direccion " + resultJPA.errorMessage);
 //            }
-
         }
         return "redirect:/UsuarioIndex/Details/" + IdUsuario;
     }
 ////------------------------------------------------------------------CARGA DIRECCIONES DETAILS------------------------------------------------------------------//
-//    @GetMapping("Details/Direccion/{IdDireccion}")
-//    @ResponseBody
-//    public Result getDireccion(@PathVariable("IdDireccion") int IdDireccion) {
-//        //Result result = direccionDAOImplementation.DireccionGetbyId(IdDireccion);
-//        //return direccionDAOImplementation.DireccionGetbyId(IdDireccion);
-//
-//        Result resultJPA = direccionJPADAOImplementation.DireccionGetByIdJPA(IdDireccion);
-//        return direccionJPADAOImplementation.DireccionGetByIdJPA(IdDireccion);
-//    }
+    @GetMapping("Details/Direccion/{IdDireccion}")
+    @ResponseBody
+    public Result getDireccion(@PathVariable("IdDireccion") int IdDireccion) {
+
+        RestTemplate restTemplate = new RestTemplate();
+        
+        ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
+                HttpMethod.GET,
+                HttpEntity.EMPTY, 
+                new ParameterizedTypeReference<Result<Direccion>>() {});
+
+         if (responseEntityDireccion.getStatusCode().value() == 200) {
+             Result resultDireccion = responseEntityDireccion.getBody();
+        } else {
+             return null;
+        }
+        return responseEntityDireccion.getBody();
+    }
 ////------------------------------------------------------------------ELIMINAR DIRECCION DETAILS------------------------------------------------------------------//
     @GetMapping("Details/Direccion/Delete/{IdDireccion}")
     @ResponseBody
@@ -466,8 +482,6 @@ public class UsuarioController {
             result.correct = false;
             result.errorMessage = "No se pudo eliminar la direccion";
         }
-        //Result result = direccionDAOImplementation.DireccionDelete(IdDireccion);
-//        Result resultJPA = direccionJPADAOImplementation.DireccionDeleteJPA(IdDireccion);
         return result;
     }
 ////------------------------------------------------------------------FORMULARIO------------------------------------------------------------------//

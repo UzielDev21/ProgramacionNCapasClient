@@ -1,11 +1,19 @@
     package com.Uziel.UCastanedaProgramacionNCapas.ML;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Direccion {
+    @JsonProperty("idDireccion")
     private int IdDireccion;
+    
+    @JsonProperty("calle")
     private String Calle;
+    
+    @JsonProperty("numeroInterior")
     private String NumeroInterior;
+    
+    @JsonProperty("numeroExterior")
     private String NumeroExterior;
     
     @JsonProperty("ColoniaJPA")
@@ -37,7 +45,6 @@ public class Direccion {
         return Calle;
     }
     
-    
     public void setNumeroInterior(String NumeroInterior){
         this.NumeroInterior = NumeroInterior;
     }
@@ -54,6 +61,7 @@ public class Direccion {
         return NumeroExterior;
     }
     
+
     public void setColonia(Colonia colonia){
         this.Colonia = colonia;
     }

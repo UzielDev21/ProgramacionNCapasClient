@@ -1,8 +1,12 @@
 package com.Uziel.UCastanedaProgramacionNCapas.ML;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Estado {
     private int IdEstado;
     private String Nombre;
+    
+    @JsonProperty("PaisJPA")
     public Pais Pais;
     
     public Estado(){

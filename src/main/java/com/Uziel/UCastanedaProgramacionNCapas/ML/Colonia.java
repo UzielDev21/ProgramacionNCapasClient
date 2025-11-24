@@ -10,6 +10,8 @@ public class Colonia {
     private String NombreColonia;
     
     private String CodigoPostal;
+    
+    @JsonProperty("MunicipioJPA")
     public Municipio Municipio;
     
     public Colonia(){
