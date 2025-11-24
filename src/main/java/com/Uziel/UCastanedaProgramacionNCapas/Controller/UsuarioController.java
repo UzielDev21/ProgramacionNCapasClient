@@ -53,10 +53,10 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("UsuarioIndex")
 public class UsuarioController {
 
-    class apiMensaje{
-        
+    class apiMensaje {
+
     }
-    
+
     private static final String urlBase = "http://localhost:8080";
 //------------------------------------------------------------------INDEX------------------------------------------------------------------//
 
@@ -77,12 +77,12 @@ public class UsuarioController {
                 new ParameterizedTypeReference<Result<Rol>>() {
         });
 
-        if (responseEntityUsuario.getStatusCode().value() == 200 && 
-                responseEntityRol.getStatusCode().value() == 200) {
+        if (responseEntityUsuario.getStatusCode().value() == 200
+                && responseEntityRol.getStatusCode().value() == 200) {
 
             Result resultUsuario = responseEntityUsuario.getBody();
             model.addAttribute("Usuarios", resultUsuario.objects);
-            
+
             Result resultRol = responseEntityRol.getBody();
             model.addAttribute("Roles", resultRol.objects);
             model.addAttribute("Usuario", new Usuario());
@@ -93,21 +93,32 @@ public class UsuarioController {
 
         return "UsuarioIndex";
     }
+//------------------------------------------------------------------ELIMINAR USUARIO------------------------------------------------------------------//
 
-//    @GetMapping("/DeleteUsuario/{IdUsuario}")
-//    public String DeleteUsuario(@PathVariable("IdUsuario") int IdUsuario, RedirectAttributes redirectAttributes) {
-//
-//        Result resultJPA = new Result();
-//
-//        if (resultJPA != null) {
-//            resultJPA = usuarioJPADAOImplementation.DeleteJPA(IdUsuario);
-//            redirectAttributes.addFlashAttribute("MsgDeleteSuccess", "Se elimino el dato correctamente");
-//        } else {
-//            redirectAttributes.addFlashAttribute("MsgDeleteError", "No se pudo eliminar el Usuario");
-//        }
-//
-//        return "redirect:/UsuarioIndex";
-//    }
+    @GetMapping("/DeleteUsuario/{IdUsuario}")
+    public String DeleteUsuario(@PathVariable("IdUsuario") int IdUsuario, RedirectAttributes redirectAttributes) {
+
+        Result result = new Result();
+
+        if (IdUsuario != 0) {
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Result<Usuario>> responseEntity = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
+                    HttpMethod.DELETE,
+                    HttpEntity.EMPTY, 
+                    new ParameterizedTypeReference<Result<Usuario>>(){});
+            
+            if (responseEntity.getStatusCode().value() == 200) {
+                result = responseEntity.getBody();
+            } else {
+                return null;
+            }
+        } else {
+            result.correct = false;
+            result.errorMessage = "No se pudo eliminar al usuario";
+        }
+        return "redirect:/UsuarioIndex";
+    }
 ////------------------------------------------------------------------BUSCAR USUARIO------------------------------------------------------------------//
 //    @PostMapping()
 //    public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model) {
@@ -301,43 +312,47 @@ public class UsuarioController {
 //        return usuarios;
 //    }
 ////------------------------------------------------------------------CARGA DETAILS------------------------------------------------------------------//
+
     @GetMapping("/Details/{IdUsuario}")
     public String Details(@PathVariable int IdUsuario, Model model) {
-        
+
         RestTemplate restTemplate = new RestTemplate();
-        
+
         ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
                 HttpMethod.GET,
-                HttpEntity.EMPTY, 
-                new ParameterizedTypeReference<Result<Usuario>>(){});
-        
-        ResponseEntity <Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles", 
-                HttpMethod.GET, 
-                HttpEntity.EMPTY, 
-                new ParameterizedTypeReference<Result<Rol>>(){});
-        
-        ResponseEntity <Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais", 
-                HttpMethod.GET, 
-                HttpEntity.EMPTY, 
-                new ParameterizedTypeReference<Result<Pais>>(){});
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
 
-        if (responseEntityUsuario.getStatusCode().value() == 200 && 
-                responseEntityRol.getStatusCode().value() == 200 &&
-                responseEntityPais.getStatusCode().value() == 200) {
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
+
+        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Pais>>() {
+        });
+
+        if (responseEntityUsuario.getStatusCode().value() == 200
+                && responseEntityRol.getStatusCode().value() == 200
+                && responseEntityPais.getStatusCode().value() == 200) {
 
             Result resultUsuario = responseEntityUsuario.getBody();
             model.addAttribute("UsuarioId", resultUsuario.object);
-            
+
             Result resultRol = responseEntityRol.getBody();
             model.addAttribute("Roles", resultRol.objects);
-            
+
             Result resultPais = responseEntityPais.getBody();
             model.addAttribute("Paises", resultPais.objects);
-            
+
         } else {
             return "Error";
         }
-        
+
         model.addAttribute("Direccion", new Direccion());
 
         return "UsuarioDetails";
@@ -376,29 +391,32 @@ public class UsuarioController {
 //        return "redirect:/UsuarioIndex/Details/" + IdUsuario;
 //    }
 ////------------------------------------------------------------------ACTUALIZAR USUARIO DETAILS------------------------------------------------------------------//
+
     @PostMapping("/Details")
     public String Update(@ModelAttribute("Usuario") Usuario usuario) {
 
-        RestTemplate restTemplate= new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
         HttpEntity<Usuario> usuarioUpdate = new HttpEntity<>(usuario);
-        ResponseEntity <Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario",
-                HttpMethod.PUT, 
-                usuarioUpdate, 
-                new ParameterizedTypeReference<Result<Usuario>> () {});
-        
+        ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario",
+                HttpMethod.PUT,
+                usuarioUpdate,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
+
         if (responseEntityUsuario.getStatusCode().value() == 200) {
             Result result = responseEntityUsuario.getBody();
-            
+
         } else {
             return "error";
         }
-        
+
         return "redirect:/UsuarioIndex/Details/" + usuario.getIdUsuario();
     }
 //    
 //    
 //    
 ////------------------------------------------------------------------INSERTAR O ACTUALIZAR NUEVA DIRECCION DETAILS------------------------------------------------------------------//
+
     @PostMapping("/DetailsDireccion/{IdUsuario}")
     public String ActionDireccion(@PathVariable("IdUsuario") int IdUsuario, @ModelAttribute("Direccion") Direccion direccion,
             BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
@@ -407,24 +425,26 @@ public class UsuarioController {
 
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity<Direccion> direccionAdd = new HttpEntity<>(direccion);
-            ResponseEntity <Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdUsuario,
+            ResponseEntity<Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdUsuario,
                     HttpMethod.POST,
-                    direccionAdd, 
-                    new ParameterizedTypeReference<Result<Direccion>>(){});
-            
+                    direccionAdd,
+                    new ParameterizedTypeReference<Result<Direccion>>() {
+            });
+
             if (responseEntity.getStatusCode().value() == 201) {
                 Result result = responseEntity.getBody();
             } else {
                 return "Error";
             }
-            
+
         } else {
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity<Direccion> direccionUpdate = new HttpEntity<>(direccion);
-            ResponseEntity <Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + direccion.getIdDireccion(),
-                    HttpMethod.PUT, 
-                    direccionUpdate, 
-                    new ParameterizedTypeReference<Result<Direccion>>() {});
+            ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + direccion.getIdDireccion(),
+                    HttpMethod.PUT,
+                    direccionUpdate,
+                    new ParameterizedTypeReference<Result<Direccion>>() {
+            });
 
             if (responseEntityDireccion.getStatusCode().value() == 200) {
                 Result result = responseEntityDireccion.getBody();
@@ -440,44 +460,47 @@ public class UsuarioController {
         return "redirect:/UsuarioIndex/Details/" + IdUsuario;
     }
 ////------------------------------------------------------------------CARGA DIRECCIONES DETAILS------------------------------------------------------------------//
+
     @GetMapping("Details/Direccion/{IdDireccion}")
     @ResponseBody
     public Result getDireccion(@PathVariable("IdDireccion") int IdDireccion) {
 
         RestTemplate restTemplate = new RestTemplate();
-        
+
         ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
                 HttpMethod.GET,
-                HttpEntity.EMPTY, 
-                new ParameterizedTypeReference<Result<Direccion>>() {});
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Direccion>>() {
+        });
 
-         if (responseEntityDireccion.getStatusCode().value() == 200) {
-             Result resultDireccion = responseEntityDireccion.getBody();
+        if (responseEntityDireccion.getStatusCode().value() == 200) {
+            Result resultDireccion = responseEntityDireccion.getBody();
         } else {
-             return null;
+            return null;
         }
         return responseEntityDireccion.getBody();
     }
 ////------------------------------------------------------------------ELIMINAR DIRECCION DETAILS------------------------------------------------------------------//
+
     @GetMapping("Details/Direccion/Delete/{IdDireccion}")
     @ResponseBody
     public Result DireccionDelete(@PathVariable("IdDireccion") int IdDireccion, Model model) {
 
         Result result = new Result();
-        
+
         if (IdDireccion != 0) {
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity <Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
-                    HttpMethod.DELETE, 
-                    HttpEntity.EMPTY, 
+            ResponseEntity<Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
+                    HttpMethod.DELETE,
+                    HttpEntity.EMPTY,
                     new ParameterizedTypeReference<Result<Direccion>>() {});
-            
+
             if (responseEntity.getStatusCode().value() == 200) {
-               result = responseEntity.getBody();
+                result = responseEntity.getBody();
             } else {
                 return null;
             }
-            
+
         } else {
             result.correct = false;
             result.errorMessage = "No se pudo eliminar la direccion";
