@@ -85,6 +85,7 @@ public class UsuarioController {
 
             Result resultRol = responseEntityRol.getBody();
             model.addAttribute("Roles", resultRol.objects);
+
             model.addAttribute("Usuario", new Usuario());
 
         } else {
@@ -105,9 +106,10 @@ public class UsuarioController {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Result<Usuario>> responseEntity = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
                     HttpMethod.DELETE,
-                    HttpEntity.EMPTY, 
-                    new ParameterizedTypeReference<Result<Usuario>>(){});
-            
+                    HttpEntity.EMPTY,
+                    new ParameterizedTypeReference<Result<Usuario>>() {
+            });
+
             if (responseEntity.getStatusCode().value() == 200) {
                 result = responseEntity.getBody();
             } else {
@@ -120,19 +122,43 @@ public class UsuarioController {
         return "redirect:/UsuarioIndex";
     }
 ////------------------------------------------------------------------BUSCAR USUARIO------------------------------------------------------------------//
-//    @PostMapping()
-//    public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model) {
-//
-////        Result result = usuarioDAOImplementation.UsuariosBuscar(usuario);
-////        model.addAttribute("Roles", rolDAOImplementation.GetAll().objects);
-//        Result resultJPA = usuarioJPADAOImplementation.BuscarUsuarioJPA(usuario);
-//        model.addAttribute("Usuarios", resultJPA.objects);
-//        model.addAttribute("Roles", rolJPADAOImplementation.GetAllJPA().objects);
-//        model.addAttribute("Usuario", usuario);
-//
-//        return "UsuarioIndex";
-//    }
+
+    @PostMapping()
+    public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model) {
+
+        RestTemplate restTemplateUsuarios = new RestTemplate();
+        HttpEntity <Usuario> usuarioBuscar = new HttpEntity<>(usuario);
+        ResponseEntity<Result<Usuario>> responseEntityUsuarioB = restTemplateUsuarios.exchange(urlBase + "/usuario/buscar",
+                HttpMethod.POST,
+                usuarioBuscar,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
+
+        RestTemplate restTemplateRol = new RestTemplate();
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
+
+        if (responseEntityUsuarioB.getStatusCode().value() == 200
+                && responseEntityRol.getStatusCode().value() == 200) {
+
+            Result resultUsuario = responseEntityUsuarioB.getBody();
+            model.addAttribute("Usuarios", resultUsuario.objects);
+
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.objects);
+
+            model.addAttribute("Usuario", usuario);
+
+        } else {
+        }
+
+        return "UsuarioIndex";
+    }
 ////------------------------------------------------------------------CARGA MASIVA------------------------------------------------------------------//
+
     @GetMapping("/CargaMasiva")
     public String CargaMasiva() {
         return "CargaMasiva";
@@ -357,8 +383,8 @@ public class UsuarioController {
 
         return "UsuarioDetails";
     }
-//    
 ////------------------------------------------------------------------ACTUALIZAR IMAGEN------------------------------------------------------------------//
+
 //    @PostMapping("/Details/Imagen/{IdUsuario}")
 //    public String UpdateImagen(@PathVariable int IdUsuario, RedirectAttributes redirectAttributes,
 //                               @RequestParam("imagenFile") MultipartFile multipartFile){
@@ -391,7 +417,6 @@ public class UsuarioController {
 //        return "redirect:/UsuarioIndex/Details/" + IdUsuario;
 //    }
 ////------------------------------------------------------------------ACTUALIZAR USUARIO DETAILS------------------------------------------------------------------//
-
     @PostMapping("/Details")
     public String Update(@ModelAttribute("Usuario") Usuario usuario) {
 
@@ -412,9 +437,6 @@ public class UsuarioController {
 
         return "redirect:/UsuarioIndex/Details/" + usuario.getIdUsuario();
     }
-//    
-//    
-//    
 ////------------------------------------------------------------------INSERTAR O ACTUALIZAR NUEVA DIRECCION DETAILS------------------------------------------------------------------//
 
     @PostMapping("/DetailsDireccion/{IdUsuario}")
@@ -493,7 +515,8 @@ public class UsuarioController {
             ResponseEntity<Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
                     HttpMethod.DELETE,
                     HttpEntity.EMPTY,
-                    new ParameterizedTypeReference<Result<Direccion>>() {});
+                    new ParameterizedTypeReference<Result<Direccion>>() {
+            });
 
             if (responseEntity.getStatusCode().value() == 200) {
                 result = responseEntity.getBody();

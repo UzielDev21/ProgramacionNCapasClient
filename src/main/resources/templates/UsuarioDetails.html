@@ -485,7 +485,7 @@
                     if (result.isConfirmed) {
                         $.ajax({
                             url: "/UsuarioIndex/Details/Direccion/Delete/" + idDireccionDelete,
-                            type: 'DELETE',
+                            type: 'get',
                             dataType: "json",
                             success: function (data, textStatus, jqXHR) {
                                 Swal.fire({
