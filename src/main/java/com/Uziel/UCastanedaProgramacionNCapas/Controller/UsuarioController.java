@@ -133,10 +133,10 @@ public class UsuarioController {
 //        return "UsuarioIndex";
 //    }
 ////------------------------------------------------------------------CARGA MASIVA------------------------------------------------------------------//
-//    @GetMapping("/CargaMasiva")
-//    public String CargaMasiva() {
-//        return "CargaMasiva";
-//    }
+    @GetMapping("/CargaMasiva")
+    public String CargaMasiva() {
+        return "CargaMasiva";
+    }
 ////------------------------------------------------------------------EJECUCIÓN DE CARGA MASIVA------------------------------------------------------------------//
 //    @GetMapping("/CargaMasiva/Procesar")
 //    public String CargaMasiva(HttpSession session, Model model) throws Exception {
