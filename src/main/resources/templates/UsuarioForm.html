@@ -239,7 +239,7 @@
                 $("#ddlPais").change(function () {
                     $.ajax({
                         type: 'GET',
-                        url: "/UsuarioIndex/Add/Estados/" + $("#ddlPais").val(),
+                        url: "http://localhost:8080/estados/" + $("#ddlPais").val(),
                         dataType: "json",
                         success: function (data, textStatus, jqXHR) {
 
@@ -264,7 +264,7 @@
                 $("#ddlEstado").change(function () {
                     $.ajax({
                         type: 'GET',
-                        url: "/UsuarioIndex/Add/Municipios/" + $("#ddlEstado").val(),
+                        url: "http://localhost:8080/municipios/" + $("#ddlEstado").val(),
                         dataType: "json",
                         success: function (data, textStatus, jqXHR) {
 
@@ -285,7 +285,7 @@
                 $("#ddlMunicipio").change(function () {
                     $.ajax({
                         type: 'GET',
-                        url: "/UsuarioIndex/Add/Colonias/" + $("#ddlMunicipio").val(),
+                        url: "http://localhost:8080/colonias/" + $("#ddlMunicipio").val(),
                         dataType: "json",
                         success: function (data, textStatus, jqXHR) {
 

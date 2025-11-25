@@ -36,9 +36,9 @@
                              src="https://icon-library.com/images/default-user-icon/default-user-icon-18.jpg">
 
                         <div id="DatosImagen" class="DatosImagen" style="display: none" >
-                            <form method="POST" th:action="@{/UsuarioIndex/Details/Imagen/{id}(id=${UsuarioId.IdUsuario})}"  enctype="multipart/form-data">
-                                <input type="file" class="form-control mb-2 imagenFile" name="imagenFile" id="imagenFile" accept="image/*">
-                                <button class="btn btn-outline-dark btnActualizarImagen" type="submit" id="btnActualizarImagen"><i class="bi bi-check-circle-fill"></i></i></button>
+                            <form id="formImagen" enctype="multipart/form-data">
+                                <input type="file" class="form-control mb-2 imagen" name="imagen" id="imagen" accept="image/*">
+                                <button class="btn btn-outline-dark btnActualizarImagen" type="button" id="btnActualizarImagen"><i class="bi bi-check-circle-fill"></i></i></button>
                             </form>
                         </div>
 
@@ -324,10 +324,10 @@
                        });
         </script>
 
-<!-----------------------------------------------------------------------------ACCIÓN DE EDITAR --------------------------------------------------------------------------->
+<!-----------------------------------------------------------------------------ACCIÓN DE EDITAR IMAGEN--------------------------------------------------------------------------->
         <script>
             
-            document.getElementById("imagenFile").addEventListener("change", function(imagen){
+            document.getElementById("imagen").addEventListener("change", function(imagen){
                 const file = imagen.target.files[0];
                 
                 if(file){
@@ -341,7 +341,56 @@
                 }
                 
             });
+            </script>
             
+       <script th:inline="javascript">
+            $(document).ready(function(){
+
+                $("#btnActualizarImagen").click(function(){
+
+                    const file = $("#imagen")[0].files[0];
+                    const reader = new FileReader();
+
+                    reader.onloadend = function(){
+                        const base64String = reader.result.split(",")[1];
+
+                        const IdUsuario = /*[[${UsuarioId.IdUsuario}]]*/ 0;
+
+                        const dataToSend = {
+                            imagen: base64String
+                        };                  
+                        $.ajax({
+                            url: "http://localhost:8080/usuario/imagen/" + IdUsuario,
+                            type: "PATCH",
+                            data: JSON.stringify(dataToSend),
+                            contentType: "application/json",
+                            success: function(response){
+                                Swal.fire({
+                                    title: "¡¡Actualizada!!",
+                                    text: "La imagen se actualizó correctamente",
+                                    icon: "success"
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            },
+                            error: function(xhr){
+                                Swal.fire({
+                                    title: "¡Error!",
+                                    text: "No se pudo actualizar la imagen: " + xhr.responseText,
+                                    icon: "error"
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            }
+                        });
+                    }; 
+                    reader.readAsDataURL(file);
+                });
+            });
+            </script>
+            
+            
+            <script th:inline="javascript">
             $(document).ready(function () {
                 $("#btnEditarImagen").click(function () {
                 $("#DatosImagen").toggle();

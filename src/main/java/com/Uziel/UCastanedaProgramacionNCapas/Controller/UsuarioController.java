@@ -41,8 +41,11 @@ import java.util.Date;
 import java.util.List;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 //import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -127,7 +130,7 @@ public class UsuarioController {
     public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model) {
 
         RestTemplate restTemplateUsuarios = new RestTemplate();
-        HttpEntity <Usuario> usuarioBuscar = new HttpEntity<>(usuario);
+        HttpEntity<Usuario> usuarioBuscar = new HttpEntity<>(usuario);
         ResponseEntity<Result<Usuario>> responseEntityUsuarioB = restTemplateUsuarios.exchange(urlBase + "/usuario/buscar",
                 HttpMethod.POST,
                 usuarioBuscar,
@@ -385,38 +388,59 @@ public class UsuarioController {
     }
 ////------------------------------------------------------------------ACTUALIZAR IMAGEN------------------------------------------------------------------//
 
-//    @PostMapping("/Details/Imagen/{IdUsuario}")
-//    public String UpdateImagen(@PathVariable int IdUsuario, RedirectAttributes redirectAttributes,
-//                               @RequestParam("imagenFile") MultipartFile multipartFile){
-//
-//        try {
-//            
-//            if (multipartFile != null && !multipartFile.isEmpty()) {
-//                String originalName = multipartFile.getOriginalFilename();
-//                if (originalName != null && originalName.contains(".")) {
-//                    
-//                    String extension = originalName.split("\\.")[1];
-//                    
-//                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
-//                        byte[] byteImagen = multipartFile.getBytes();
-//                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
-//                        
-//                        usuarioJPADAOImplementation.UpdateImagenJPA(IdUsuario, imagenBase64);
-//                        redirectAttributes.addFlashAttribute("MsgSuccessImagen", "La imagen se actualizo correctamente");
-//                    }else{
-//                        redirectAttributes.addFlashAttribute("MsgErrorImagen", "Solo se pueden ingresar png o jpg");
-//                    }
-//                    
-//                }
-//            }
-//            
-//        } catch (IOException ex) {
-//            redirectAttributes.addFlashAttribute("MsgError", "Error al procesar la imagen" + ex.getMessage());
-//        }
-//        
-//        return "redirect:/UsuarioIndex/Details/" + IdUsuario;
-//    }
+    @PostMapping("/Details/Imagen/{IdUsuario}")
+    public String UpdateImagen(@PathVariable int IdUsuario, RedirectAttributes redirectAttributes,
+            @RequestParam("imagen") MultipartFile multipartFile) {
+
+        try {
+
+            if (multipartFile != null && !multipartFile.isEmpty()) {
+                String originalName = multipartFile.getOriginalFilename();
+                if (originalName != null && originalName.contains(".")) {
+
+                    String extension = originalName.split("\\.")[1];
+
+                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
+                        byte[] byteImagen = multipartFile.getBytes();
+                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
+                        
+                        Usuario usuario = new Usuario();
+                        usuario.setIdUsuario(IdUsuario);
+                        usuario.setImagen(imagenBase64);
+                        
+                        RestTemplate restTemplate = new RestTemplate();
+                        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+                        HttpHeaders httpHeaders = new HttpHeaders();
+                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                        
+                        HttpEntity<Usuario> imagenUpdate = new HttpEntity<>(usuario,httpHeaders);
+                        
+                        ResponseEntity<Result<Usuario>> responseEntityImagen = restTemplate.exchange(urlBase + "/usuario/imagen/" + IdUsuario, 
+                                HttpMethod.PATCH, 
+                                imagenUpdate, 
+                                new ParameterizedTypeReference<Result<Usuario>>() {});
+                        
+                        if (responseEntityImagen.getStatusCode().value() == 200) {
+                            Result result = responseEntityImagen.getBody();
+                        } else {
+                            return "error";
+                        }
+                        redirectAttributes.addFlashAttribute("MsgSuccessImagen", "La imagen se actualizo correctamente");
+                    } else {
+                        redirectAttributes.addFlashAttribute("MsgErrorImagen", "Solo se pueden ingresar png o jpg");
+                    }
+
+                }
+            }
+
+        } catch (IOException ex) {
+            redirectAttributes.addFlashAttribute("MsgError", "Error al procesar la imagen" + ex.getMessage());
+        }
+
+        return "redirect:/UsuarioIndex/Details/" + IdUsuario;
+    }
 ////------------------------------------------------------------------ACTUALIZAR USUARIO DETAILS------------------------------------------------------------------//
+
     @PostMapping("/Details")
     public String Update(@ModelAttribute("Usuario") Usuario usuario) {
 
@@ -531,43 +555,42 @@ public class UsuarioController {
         return result;
     }
 ////------------------------------------------------------------------FORMULARIO------------------------------------------------------------------//
-//    @GetMapping("/Add")
-//    public String Form(Model model) {
-//
-//        Usuario usuario = new Usuario();
-//        model.addAttribute("Usuario", usuario);
-////        model.addAttribute("Roles", rolDAOImplementation.GetAll().objects);
-////        model.addAttribute("Paises", paisDAOImplementation.GetAll().objects);
-//        model.addAttribute("Roles", rolJPADAOImplementation.GetAllJPA().objects);
-//        model.addAttribute("Paises", paisJPADAOImplementation.GetAllJPA().objects);
-//
-//        return "UsuarioForm";
-//    }
-////------------------------------------------------------------------CARGA DDL FORM------------------------------------------------------------------//
-//    @GetMapping("Add/Estados/{IdPais}")
-//    @ResponseBody
-//    public Result EstadosGetByIdPais(@PathVariable("IdPais") int IdPais) {
-//
-////        return estadoDAOImplementation.EstadosGetByIdPais(IdPais);
-//        return estadoJPADAOImplementation.GetByIdPaisJPA(IdPais);
-//    }
-//
-//    @GetMapping("Add/Municipios/{IdEstado}")
-//    @ResponseBody
-//    public Result MunicipiosGetByIdEstado(@PathVariable("IdEstado") int IdEstado) {
-//
-////        return municipioDAOImplementation.MunicipioGetByIdEstado(IdEstado);
-//        return municipioJPADAOImplementation.GetByIdEstadoJPA(IdEstado);
-//    }
-//
-//    @GetMapping("Add/Colonias/{IdMunicipio}")
-//    @ResponseBody
-//    public Result ColoniasGetByIdMunicipio(@PathVariable("IdMunicipio") int IdMunicipio) {
-//
-////        return coloniaDAOImplementation.ColoniasGetByIdMunicipio(IdMunicipio);
-//        return coloniaJPADAOImplementation.GetByIdMunicipioJPA(IdMunicipio);
-//    }
-//
+
+    @GetMapping("/Add")
+    public String Form(Model model) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
+
+        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Pais>>() {
+        });
+
+        if (responseEntityRol.getStatusCode().value() == 200
+                && responseEntityPais.getStatusCode().value() == 200) {
+
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.objects);
+
+            Result resultPais = responseEntityPais.getBody();
+            model.addAttribute("Paises", resultPais.objects);
+
+            Usuario usuario = new Usuario();
+            model.addAttribute("Usuario", usuario);
+        } else {
+            return "error";
+        }
+
+        return "UsuarioForm";
+    }
+////------------------------------------------------------------------Se quito la carga de DDL, se llenan conforme viene de la serializacion------------------------------------------------------------------//
 //    @GetMapping("Add/DireccionByCP/{CodigoPostal}")
 //    @ResponseBody
 //    public Result CodigoPostalGetDatos(@PathVariable("CodigoPostal") String CodigoPostal) {
