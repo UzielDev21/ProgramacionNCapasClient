@@ -292,7 +292,7 @@
                             $("#ddlColonia").empty();
                             $("#ddlColonia").append("<option value=0> Escoge una opcion </option>");
                             $.each(data.objects, function (i, colonia) {
-                                $("#ddlColonia").append("<option value = " + colonia.idColonia + ">" + colonia.nombreColonia + "</option>");
+                                $("#ddlColonia").append("<option value = " + colonia.idColonia + ">" + colonia.nombre + "</option>");
                             });
                         },
                         error: function (jqXHR, textStatus, errorThrown) {

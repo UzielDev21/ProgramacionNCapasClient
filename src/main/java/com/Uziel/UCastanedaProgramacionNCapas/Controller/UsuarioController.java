@@ -4,6 +4,7 @@ import com.Uziel.UCastanedaProgramacionNCapas.ML.Colonia;
 import com.Uziel.UCastanedaProgramacionNCapas.ML.Direccion;
 import com.Uziel.UCastanedaProgramacionNCapas.ML.Estado;
 import com.Uziel.UCastanedaProgramacionNCapas.ML.ErrorCarga;
+import com.Uziel.UCastanedaProgramacionNCapas.ML.Municipio;
 import com.Uziel.UCastanedaProgramacionNCapas.ML.Pais;
 import com.Uziel.UCastanedaProgramacionNCapas.ML.Result;
 import com.Uziel.UCastanedaProgramacionNCapas.ML.Rol;
@@ -403,23 +404,24 @@ public class UsuarioController {
                     if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
                         byte[] byteImagen = multipartFile.getBytes();
                         String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
-                        
+
                         Usuario usuario = new Usuario();
                         usuario.setIdUsuario(IdUsuario);
                         usuario.setImagen(imagenBase64);
-                        
+
                         RestTemplate restTemplate = new RestTemplate();
                         restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
                         HttpHeaders httpHeaders = new HttpHeaders();
                         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                        
-                        HttpEntity<Usuario> imagenUpdate = new HttpEntity<>(usuario,httpHeaders);
-                        
-                        ResponseEntity<Result<Usuario>> responseEntityImagen = restTemplate.exchange(urlBase + "/usuario/imagen/" + IdUsuario, 
-                                HttpMethod.PATCH, 
-                                imagenUpdate, 
-                                new ParameterizedTypeReference<Result<Usuario>>() {});
-                        
+
+                        HttpEntity<Usuario> imagenUpdate = new HttpEntity<>(usuario, httpHeaders);
+
+                        ResponseEntity<Result<Usuario>> responseEntityImagen = restTemplate.exchange(urlBase + "/usuario/imagen/" + IdUsuario,
+                                HttpMethod.PATCH,
+                                imagenUpdate,
+                                new ParameterizedTypeReference<Result<Usuario>>() {
+                        });
+
                         if (responseEntityImagen.getStatusCode().value() == 200) {
                             Result result = responseEntityImagen.getBody();
                         } else {
@@ -598,50 +600,99 @@ public class UsuarioController {
 //        return codigoPostalJPADAOImplementation.CodigoPostalGetDatosJPA(CodigoPostal);
 //    }
 ////------------------------------------------------------------------POST DEL FORMULARIO------------------------------------------------------------------//
-//    @PostMapping("/Add")
-//    public String Add(@Valid
-//            @ModelAttribute("Usuario") Usuario usuario,
-//            BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes,
-//            @RequestParam("imagenFile") MultipartFile multipartFile) {
-//
-//        if (bindingResult.hasErrors()) {
-//            model.addAttribute("Usuario", usuario);
-////            model.addAttribute("Roles", rolDAOImplementation.GetAll().objects);
-////            model.addAttribute("Paises", paisDAOImplementation.GetAll().objects);
-//            model.addAttribute("Roles", rolJPADAOImplementation.GetAllJPA().objects);
-//            model.addAttribute("Paises", paisJPADAOImplementation.GetAllJPA().objects);
-//            if (usuario.Direcciones.get(0).Colonia.Municipio.Estado.Pais.getIdPais() > 0) {
-//                model.addAttribute("Estados", estadoJPADAOImplementation.GetByIdPaisJPA(usuario.Direcciones.get(0).Colonia.Municipio.Estado.Pais.getIdPais()).objects);
-//                if (usuario.Direcciones.get(0).Colonia.Municipio.Estado.getIdEstado() > 0) {
-//                    model.addAttribute("Municipios", municipioJPADAOImplementation.GetByIdEstadoJPA(usuario.Direcciones.get(0).Colonia.Municipio.Estado.getIdEstado()).objects);
-//                    if (usuario.Direcciones.get(0).Colonia.Municipio.getIdMunicipio() > 0) {
-//                        model.addAttribute("Colonias", coloniaJPADAOImplementation.GetByIdMunicipioJPA(usuario.Direcciones.get(0).Colonia.Municipio.getIdMunicipio()).objects);
-//                    }
-//                }
-//            }
-//            return "UsuarioForm";
-//        }
-//        if (multipartFile != null && !multipartFile.isEmpty()) {
-//            try {
-//                String originalName = multipartFile.getOriginalFilename();
-//                if (originalName != null && originalName.contains(".")) {
-//
-//                    String extension = originalName.split("\\.")[1];
-//
-//                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
-//                        byte[] byteImagen = multipartFile.getBytes();
-//                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
-//                        usuario.setImagen(imagenBase64);
-//                        usuario.setExtension(extension);
-//                    }
-//                }
-//            } catch (IOException ex) {
-//                Logger.getLogger(UsuarioController.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
-//        //Result result = usuarioDAOImplementation.Add(usuario);
-//        Result resultJPA = usuarioJPADAOImplementation.AddJPA(usuario);
-//        redirectAttributes.addFlashAttribute("successMessage", "El usuario " + usuario.getUserName() + " se creo con exito.");
-//        return "redirect:/UsuarioIndex";
-//    }
+
+    @PostMapping("/Add")
+    public String Add(@ModelAttribute("Usuario") Usuario usuario, BindingResult bindingResult, Model model,
+            RedirectAttributes redirectAttributes, @RequestParam("imagenFile") MultipartFile multipartFile) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
+
+        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Pais>>() {
+        });
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("Usuario", usuario);
+
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.objects);
+
+            Result resultPais = responseEntityPais.getBody();
+            model.addAttribute("Paises", resultPais.objects);
+
+            if (usuario.Direcciones.get(0).Colonia.Municipio.Estado.Pais.getIdPais() > 0) {
+
+                ResponseEntity<Result<Estado>> responseEntityEstado = restTemplate.exchange(urlBase + "/estados/" + usuario.Direcciones.get(0).Colonia.Municipio.Estado.Pais.getIdPais(),
+                        HttpMethod.GET,
+                        HttpEntity.EMPTY,
+                        new ParameterizedTypeReference<Result<Estado>>() {
+                });
+
+                Result resultEstado = responseEntityEstado.getBody();
+                model.addAttribute("Estados", resultEstado.objects);
+
+                if (usuario.Direcciones.get(0).Colonia.Municipio.Estado.getIdEstado() > 0) {
+
+                    ResponseEntity<Result<Municipio>> responseEntityMunicipio = restTemplate.exchange(urlBase + "/municipios/" + usuario.Direcciones.get(0).Colonia.Municipio.Estado.getIdEstado(),
+                            HttpMethod.GET,
+                            HttpEntity.EMPTY,
+                            new ParameterizedTypeReference<Result<Municipio>>() {
+                    });
+
+                    Result resultMunicipio = responseEntityMunicipio.getBody();
+                    model.addAttribute("Municipios", resultMunicipio.objects);
+
+                    if (usuario.Direcciones.get(0).Colonia.Municipio.getIdMunicipio() > 0) {
+
+                        ResponseEntity<Result<Colonia>> responseEntityColonia = restTemplate.exchange(urlBase + "/estados/" + usuario.Direcciones.get(0).Colonia.Municipio.getIdMunicipio(),
+                                HttpMethod.GET,
+                                HttpEntity.EMPTY,
+                                new ParameterizedTypeReference<Result<Colonia>>() {
+                        });
+                        
+                        Result resultColonia = responseEntityColonia.getBody();
+                        model.addAttribute("Colonias", resultColonia.objects);
+
+                    }
+                }
+            }
+            return "UsuarioForm";
+        }
+        if (multipartFile != null && !multipartFile.isEmpty()) {
+            try {
+                String originalName = multipartFile.getOriginalFilename();
+                if (originalName != null && originalName.contains(".")) {
+
+                    String extension = originalName.split("\\.")[1];
+
+                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
+                        byte[] byteImagen = multipartFile.getBytes();
+                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
+                        usuario.setImagen(imagenBase64);
+                    }
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(UsuarioController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        HttpEntity<Usuario> usuarioAdd = new HttpEntity<>(usuario);
+        HttpEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario",
+                HttpMethod.POST,
+                usuarioAdd,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
+
+        Result resultUsuario = responseEntityUsuario.getBody();
+        redirectAttributes.addFlashAttribute("successMessage", "El usuario " + usuario.getUserName() + " se creo con exito.");
+        return "redirect:/UsuarioIndex";
+    }
 }
