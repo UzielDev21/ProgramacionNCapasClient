@@ -1,6 +1,5 @@
 package com.Uziel.UCastanedaProgramacionNCapas.ML;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
@@ -15,7 +14,7 @@ public class Usuario {
     private String ApellidoMaterno;
     private String Email;
     private String Password;
-    
+
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date FechaNacimiento;
     private String Sexo;
@@ -23,6 +22,8 @@ public class Usuario {
     private String Celular;
     private String Curp;
     private String Imagen;
+    private int Status;
+
     private String extension;
 
     @JsonProperty("RolJPA")
@@ -35,7 +36,7 @@ public class Usuario {
 
     }
 
-    public Usuario(String UserName, String Nombre, String ApellidoPaterno, String ApellidoMaterno, String Email, String Password, Date FechaNacimiento, String Sexo, String Telefono, String Celular, String Curp, String Imagen) {
+    public Usuario(String UserName, String Nombre, String ApellidoPaterno, String ApellidoMaterno, String Email, String Password, Date FechaNacimiento, String Sexo, String Telefono, String Celular, String Curp, String Imagen, int Status) {
         this.UserName = UserName;
         this.Nombre = Nombre;
         this.ApellidoPaterno = ApellidoPaterno;
@@ -47,6 +48,7 @@ public class Usuario {
         this.Celular = Celular;
         this.Curp = Curp;
         this.Imagen = Imagen;
+        this.Status = Status;
     }
 
     public void setIdUsuario(int IdUsuario) {
@@ -153,6 +155,14 @@ public class Usuario {
         return Imagen;
     }
 
+    public void setStatus(int Status) {
+        this.Status = Status;
+    }
+
+    public int getStatus() {
+        return Status;
+    }
+
     public Rol getRol() {
         return Rol;
     }
@@ -161,16 +171,16 @@ public class Usuario {
         this.Rol = Rol;
     }
 
-    public List<Direccion> getDirecciones() {
-        return Direcciones;
-    }
-
     public String getExtension() {
         return extension;
     }
 
     public void setExtension(String extension) {
         this.extension = extension;
+    }
+
+    public List<Direccion> getDirecciones() {
+        return Direcciones;
     }
 
     public void setDirecciones(List<Direccion> Direcciones) {

@@ -85,12 +85,15 @@ public class UsuarioController {
                 && responseEntityRol.getStatusCode().value() == 200) {
 
             Result resultUsuario = responseEntityUsuario.getBody();
+            
             model.addAttribute("Usuarios", resultUsuario.objects);
 
             Result resultRol = responseEntityRol.getBody();
             model.addAttribute("Roles", resultRol.objects);
-
-            model.addAttribute("Usuario", new Usuario());
+            
+            Usuario usuario = new Usuario();
+            usuario.setStatus(2);
+            model.addAttribute("Usuario", usuario);
 
         } else {
             return "Error";
