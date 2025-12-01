@@ -57,27 +57,34 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("UsuarioIndex")
 public class UsuarioController {
 
-    class apiMensaje {
-
-    }
-
     private static final String urlBase = "http://localhost:8080";
 //------------------------------------------------------------------INDEX------------------------------------------------------------------//
 
     @GetMapping
-    public String Index(Model model) {
+    public String Index(Model model, HttpSession session) {
+
+        String token = (String) session.getAttribute("jwtToken");
+
+        if (token == null) {
+            return "redirect:/Login";
+        }
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization","Bearer " + token);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        
 
         RestTemplate restTemplateUsuario = new RestTemplate();
         ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplateUsuario.exchange(urlBase + "/usuario",
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Usuario>>() {
         });
 
         RestTemplate restTemplateRol = new RestTemplate();
         ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Rol>>() {
         });
 
@@ -85,15 +92,18 @@ public class UsuarioController {
                 && responseEntityRol.getStatusCode().value() == 200) {
 
             Result resultUsuario = responseEntityUsuario.getBody();
-            
+
             model.addAttribute("Usuarios", resultUsuario.objects);
 
             Result resultRol = responseEntityRol.getBody();
             model.addAttribute("Roles", resultRol.objects);
-            
+
             Usuario usuario = new Usuario();
             usuario.setStatus(2);
             model.addAttribute("Usuario", usuario);
+            
+            String user = (String) session.getAttribute("loggedUsername");
+            model.addAttribute("UsuarioLogueado", user);
 
         } else {
             return "Error";
@@ -660,7 +670,7 @@ public class UsuarioController {
                                 HttpEntity.EMPTY,
                                 new ParameterizedTypeReference<Result<Colonia>>() {
                         });
-                        
+
                         Result resultColonia = responseEntityColonia.getBody();
                         model.addAttribute("Colonias", resultColonia.objects);
 
