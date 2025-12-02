@@ -357,40 +357,50 @@ public class UsuarioController {
 ////------------------------------------------------------------------CARGA DETAILS------------------------------------------------------------------//
 
     @GetMapping("/Details/{IdUsuario}")
-    public String Details(@PathVariable int IdUsuario, Model model) {
+    public String Details(@PathVariable int IdUsuario, Model model, HttpSession session) {
 
+        String token = (String) session.getAttribute("jwtToken");
+        
+        if (token == null) {
+            return "redirect:/Login";
+        }
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        
         RestTemplate restTemplate = new RestTemplate();
-
         ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Usuario>>() {
         });
 
-        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
-                HttpMethod.GET,
-                HttpEntity.EMPTY,
-                new ParameterizedTypeReference<Result<Rol>>() {
-        });
-
-        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
-                HttpMethod.GET,
-                HttpEntity.EMPTY,
-                new ParameterizedTypeReference<Result<Pais>>() {
-        });
+//        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
+//                HttpMethod.GET,
+//                HttpEntity.EMPTY,
+//                new ParameterizedTypeReference<Result<Rol>>() {
+//        });
+//
+//        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
+//                HttpMethod.GET,
+//                HttpEntity.EMPTY,
+//                new ParameterizedTypeReference<Result<Pais>>() {
+//        });
 
         if (responseEntityUsuario.getStatusCode().value() == 200
-                && responseEntityRol.getStatusCode().value() == 200
-                && responseEntityPais.getStatusCode().value() == 200) {
+//                && responseEntityRol.getStatusCode().value() == 200
+//                && responseEntityPais.getStatusCode().value() == 200
+                ) {
 
             Result resultUsuario = responseEntityUsuario.getBody();
             model.addAttribute("UsuarioId", resultUsuario.object);
 
-            Result resultRol = responseEntityRol.getBody();
-            model.addAttribute("Roles", resultRol.objects);
-
-            Result resultPais = responseEntityPais.getBody();
-            model.addAttribute("Paises", resultPais.objects);
+//            Result resultRol = responseEntityRol.getBody();
+//            model.addAttribute("Roles", resultRol.objects);
+//
+//            Result resultPais = responseEntityPais.getBody();
+//            model.addAttribute("Paises", resultPais.objects);
 
         } else {
             return "Error";
