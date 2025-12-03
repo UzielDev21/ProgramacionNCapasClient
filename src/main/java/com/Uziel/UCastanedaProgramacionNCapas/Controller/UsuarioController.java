@@ -44,6 +44,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -51,6 +52,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Controller
@@ -68,121 +70,177 @@ public class UsuarioController {
         if (token == null) {
             return "redirect:/Login";
         }
-        
+
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization","Bearer " + token);
+        headers.set("Authorization", "Bearer " + token);
         HttpEntity<?> entity = new HttpEntity<>(headers);
-        
 
-        RestTemplate restTemplateUsuario = new RestTemplate();
-        ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplateUsuario.exchange(urlBase + "/usuario",
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<Result<Usuario>>() {
-        });
+        try {
 
-        RestTemplate restTemplateRol = new RestTemplate();
-        ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<Result<Rol>>() {
-        });
+            RestTemplate restTemplateUsuario = new RestTemplate();
+            ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplateUsuario.exchange(urlBase + "/usuario",
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Result<Usuario>>() {
+            });
 
-        if (responseEntityUsuario.getStatusCode().value() == 200
-                && responseEntityRol.getStatusCode().value() == 200) {
+            RestTemplate restTemplateRol = new RestTemplate();
+            ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Result<Rol>>() {
+            });
 
-            Result resultUsuario = responseEntityUsuario.getBody();
+            if (responseEntityUsuario.getStatusCode().value() == 200
+                    && responseEntityRol.getStatusCode().value() == 200) {
 
-            model.addAttribute("Usuarios", resultUsuario.objects);
+                Result resultUsuario = responseEntityUsuario.getBody();
 
-            Result resultRol = responseEntityRol.getBody();
-            model.addAttribute("Roles", resultRol.objects);
+                model.addAttribute("Usuarios", resultUsuario.objects);
 
-            Usuario usuario = new Usuario();
-            usuario.setStatus(2);
-            model.addAttribute("Usuario", usuario);
-            
-            String user = (String) session.getAttribute("loggedUsername");
-            model.addAttribute("UsuarioLogueado", user);
+                Result resultRol = responseEntityRol.getBody();
+                model.addAttribute("Roles", resultRol.objects);
 
-        } else {
-            return "Error";
+                Usuario usuario = new Usuario();
+                usuario.setStatus(2);
+                model.addAttribute("Usuario", usuario);
+
+                String user = (String) session.getAttribute("loggedUsername");
+                model.addAttribute("UsuarioLogueado", user);
+
+                return "UsuarioIndex";
+
+            } else {
+                return "Error";
+            }
+
+        } catch (HttpClientErrorException ex) {
+            HttpStatus status = (HttpStatus) ex.getStatusCode();
+
+            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+                session.invalidate();
+                return "redirect:/Login?tokenExpirado=true";
+            }
+
         }
 
         return "UsuarioIndex";
     }
-//------------------------------------------------------------------ELIMINAR USUARIO------------------------------------------------------------------//
 
+////------------------------------------------------------------------ELIMINAR USUARIO------------------------------------------------------------------//
     @GetMapping("/DeleteUsuario/{IdUsuario}")
-    public String DeleteUsuario(@PathVariable("IdUsuario") int IdUsuario, RedirectAttributes redirectAttributes) {
+    public String DeleteUsuario(@PathVariable("IdUsuario") int IdUsuario, RedirectAttributes redirectAttributes, HttpSession session) {
 
         Result result = new Result();
 
         if (IdUsuario != 0) {
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Result<Usuario>> responseEntity = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
-                    HttpMethod.DELETE,
-                    HttpEntity.EMPTY,
-                    new ParameterizedTypeReference<Result<Usuario>>() {
-            });
+            String token = (String) session.getAttribute("jwtToken");
 
-            if (responseEntity.getStatusCode().value() == 200) {
-                result = responseEntity.getBody();
-            } else {
-                return null;
+            if (token == null) {
+                return "redirect:/Login";
             }
+
+            try {
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("Authorization", "Bearer " + token);
+                HttpEntity<?> entity = new HttpEntity<>(headers);
+
+                RestTemplate restTemplate = new RestTemplate();
+                ResponseEntity<Result<Usuario>> responseEntity = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
+                        HttpMethod.DELETE,
+                        entity,
+                        new ParameterizedTypeReference<Result<Usuario>>() {
+                });
+
+                if (responseEntity.getStatusCode().value() == 200) {
+                    result = responseEntity.getBody();
+                }
+
+                return "redirect:/UsuarioIndex";
+
+            } catch (HttpClientErrorException ex) {
+                HttpStatus status = (HttpStatus) ex.getStatusCode();
+
+                if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+                    session.invalidate();
+                    return "redirect;/Login?tokenExpirado=true";
+                }
+            }
+
         } else {
             result.correct = false;
             result.errorMessage = "No se pudo eliminar al usuario";
         }
         return "redirect:/UsuarioIndex";
     }
+
 ////------------------------------------------------------------------BUSCAR USUARIO------------------------------------------------------------------//
-
     @PostMapping()
-    public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model) {
+    public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model, HttpSession session) {
 
-        RestTemplate restTemplateUsuarios = new RestTemplate();
-        HttpEntity<Usuario> usuarioBuscar = new HttpEntity<>(usuario);
-        ResponseEntity<Result<Usuario>> responseEntityUsuarioB = restTemplateUsuarios.exchange(urlBase + "/usuario/buscar",
-                HttpMethod.POST,
-                usuarioBuscar,
-                new ParameterizedTypeReference<Result<Usuario>>() {
-        });
+        String token = (String) session.getAttribute("jwtToken");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
 
-        RestTemplate restTemplateRol = new RestTemplate();
-        ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
-                HttpMethod.GET,
-                HttpEntity.EMPTY,
-                new ParameterizedTypeReference<Result<Rol>>() {
-        });
+        try {
+            RestTemplate restTemplateUsuarios = new RestTemplate();
+            HttpEntity<Usuario> usuarioBuscar = new HttpEntity<>(usuario, headers);
+            ResponseEntity<Result<Usuario>> responseEntityUsuarioB = restTemplateUsuarios.exchange(urlBase + "/usuario/buscar",
+                    HttpMethod.POST,
+                    usuarioBuscar,
+                    new ParameterizedTypeReference<Result<Usuario>>() {
+            });
 
-        if (responseEntityUsuarioB.getStatusCode().value() == 200
-                && responseEntityRol.getStatusCode().value() == 200) {
+            HttpEntity<?> entityTokenRol = new HttpEntity<>(headers);
+            RestTemplate restTemplateRol = new RestTemplate();
+            ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(
+                    urlBase + "/roles",
+                    HttpMethod.GET,
+                    entityTokenRol,
+                    new ParameterizedTypeReference<Result<Rol>>() {
+            });
 
-            Result resultUsuario = responseEntityUsuarioB.getBody();
-            model.addAttribute("Usuarios", resultUsuario.objects);
+            if (responseEntityUsuarioB.getStatusCode().value() == 200
+                    && responseEntityRol.getStatusCode().value() == 200) {
 
-            Result resultRol = responseEntityRol.getBody();
-            model.addAttribute("Roles", resultRol.objects);
+                Result resultUsuario = responseEntityUsuarioB.getBody();
+                model.addAttribute("Usuarios", resultUsuario.objects);
 
-            model.addAttribute("Usuario", usuario);
+                Result resultRol = responseEntityRol.getBody();
+                model.addAttribute("Roles", resultRol.objects);
 
-        } else {
+                model.addAttribute("Usuario", usuario);
+
+                return "UsuarioIndex";
+
+            } else {
+                return "error";
+            }
+        } catch (HttpClientErrorException ex) {
+            HttpStatus status = (HttpStatus) ex.getStatusCode();
+
+            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+                session.invalidate();
+
+                return "redirect:/Login?tokenExpirado = true";
+            }
+
         }
 
-        return "UsuarioIndex";
+        return null;
     }
-////------------------------------------------------------------------CARGA MASIVA------------------------------------------------------------------//
 
+////------------------------------------------------------------------CARGA MASIVA------------------------------------------------------------------//
     @GetMapping("/CargaMasiva")
     public String CargaMasiva() {
         return "CargaMasiva";
     }
+
 ////------------------------------------------------------------------EJECUCIÓN DE CARGA MASIVA------------------------------------------------------------------//
-//    @GetMapping("/CargaMasiva/Procesar")
-//    public String CargaMasiva(HttpSession session, Model model) throws Exception {
+    @GetMapping("/CargaMasiva/Procesar")
+    public String CargaMasiva(HttpSession session, Model model) throws Exception {
 //        String Path = session.getAttribute("archivoCargaMasiva").toString();
 //        session.removeAttribute("archivoCargaMasiva");
 //
@@ -206,11 +264,12 @@ public class UsuarioController {
 //            model.addAttribute("MsgError", "Error en la Carga Masiva");
 //            throw ex;
 //        }
-//        return "CargaMasiva";
-//    }
+        return "CargaMasiva";
+    }
+
 ////------------------------------------------------------------------TRANSFERENCIA Y LECTURA DE ARCHIVO------------------------------------------------------------------//
-//    @PostMapping("/CargaMasiva")
-//    public String CargaMasiva(@RequestParam("archivo") MultipartFile archivo, Model model, HttpSession session) {
+    @PostMapping("/CargaMasiva")
+    public String CargaMasiva(@RequestParam("archivo") MultipartFile archivo, Model model, HttpSession session) {
 //
 //        String extension = archivo.getOriginalFilename().split("\\.")[1];
 //
@@ -250,12 +309,13 @@ public class UsuarioController {
 //            model.addAttribute("MsgError", "Se encontraron errores");
 //        }
 //
-//        return "CargaMasiva";
-//    }
+        return "CargaMasiva";
+    }
+
 ////------------------------------------------------------------------VALIDAR DATOS DE ARCHIVOS------------------------------------------------------------------//
-//    public List<ErrorCarga> ValidarDatosArchivo(List<Usuario> usuarios) {
+    public List<ErrorCarga> ValidarDatosArchivo(List<Usuario> usuarios) {
 //
-//        List<ErrorCarga> erroresCarga = new ArrayList<>();
+        List<ErrorCarga> erroresCarga = new ArrayList<>();
 //        int lineaError = 0;
 //
 //        for (Usuario usuario : usuarios) {
@@ -274,12 +334,13 @@ public class UsuarioController {
 //                erroresCarga.add(errorCarga);
 //            }
 //        }
-//        return erroresCarga;
-//    }
+        return erroresCarga;
+    }
+
 ////------------------------------------------------------------------LECTURA DE ARCHIVO TXT ------------------------------------------------------------------//
-//    public List<Usuario> LecturaArchivoTXT(File archivo) {
+    public List<Usuario> LecturaArchivoTXT(File archivo) {
 //
-//        List<Usuario> usuarios = new ArrayList<>();
+        List<Usuario> usuarios = new ArrayList<>();
 //
 //        try (InputStream inputStream = new FileInputStream(archivo); BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));) {
 //            String linea = "";
@@ -313,11 +374,12 @@ public class UsuarioController {
 //            return null;
 //        }
 //        System.out.println(usuarios.isEmpty());
-//        return usuarios;
-//    }
+        return usuarios;
+    }
+
 ////------------------------------------------------------------------lECTURA ARCHIVO XLSX------------------------------------------------------------------//
-//    public List<Usuario> LecturaArchivoXLSX(File archivo) {
-//        List<Usuario> usuarios = new ArrayList<>();
+    public List<Usuario> LecturaArchivoXLSX(File archivo) {
+        List<Usuario> usuarios = new ArrayList<>();
 //
 //        try (InputStream inputStream = new FileInputStream(archivo); XSSFWorkbook workBook = new XSSFWorkbook(inputStream)) {
 //
@@ -352,118 +414,129 @@ public class UsuarioController {
 //        } catch (Exception ex) {
 //            System.out.println(ex.getLocalizedMessage());
 //        }
-//        return usuarios;
-//    }
+        return usuarios;
+    }
+
 ////------------------------------------------------------------------CARGA DETAILS------------------------------------------------------------------//
 
     @GetMapping("/Details/{IdUsuario}")
     public String Details(@PathVariable int IdUsuario, Model model, HttpSession session) {
 
         String token = (String) session.getAttribute("jwtToken");
-        
+
         if (token == null) {
             return "redirect:/Login";
         }
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<?> entity = new HttpEntity<>(headers);
-        
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<Result<Usuario>>() {
-        });
 
-//        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
-//                HttpMethod.GET,
-//                HttpEntity.EMPTY,
-//                new ParameterizedTypeReference<Result<Rol>>() {
-//        });
-//
-//        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
-//                HttpMethod.GET,
-//                HttpEntity.EMPTY,
-//                new ParameterizedTypeReference<Result<Pais>>() {
-//        });
+        try {
 
-        if (responseEntityUsuario.getStatusCode().value() == 200
-//                && responseEntityRol.getStatusCode().value() == 200
-//                && responseEntityPais.getStatusCode().value() == 200
-                ) {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Result<Usuario>>() {
+            });
 
-            Result resultUsuario = responseEntityUsuario.getBody();
-            model.addAttribute("UsuarioId", resultUsuario.object);
+            ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Result<Rol>>() {
+            });
 
-//            Result resultRol = responseEntityRol.getBody();
-//            model.addAttribute("Roles", resultRol.objects);
-//
-//            Result resultPais = responseEntityPais.getBody();
-//            model.addAttribute("Paises", resultPais.objects);
+            ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Result<Pais>>() {
+            });
+            if (responseEntityUsuario.getStatusCode().value() == 200
+                    && responseEntityRol.getStatusCode().value() == 200
+                    && responseEntityPais.getStatusCode().value() == 200) {
 
-        } else {
-            return "Error";
+                Result resultUsuario = responseEntityUsuario.getBody();
+                model.addAttribute("UsuarioId", resultUsuario.object);
+
+                Result resultRol = responseEntityRol.getBody();
+                model.addAttribute("Roles", resultRol.objects);
+
+                Result resultPais = responseEntityPais.getBody();
+                model.addAttribute("Paises", resultPais.objects);
+                model.addAttribute("Direccion", new Direccion());
+                return "UsuarioDetails";
+            } else {
+                return "Error";
+            }
+
+        } catch (HttpClientErrorException ex) {
+            HttpStatus status = (HttpStatus) ex.getStatusCode();
+
+            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+                session.invalidate();
+                return "redirect:/Login?tokenExpirado=true";
+            }
         }
-
-        model.addAttribute("Direccion", new Direccion());
-
-        return "UsuarioDetails";
+        return "Error";
     }
-////------------------------------------------------------------------ACTUALIZAR IMAGEN------------------------------------------------------------------//
 
+////------------------------------------------------------------------ACTUALIZAR IMAGEN------------------------------------------------------------------//
+                    //Ya no se utilizo//
+    
     @PostMapping("/Details/Imagen/{IdUsuario}")
     public String UpdateImagen(@PathVariable int IdUsuario, RedirectAttributes redirectAttributes,
             @RequestParam("imagen") MultipartFile multipartFile) {
 
-        try {
-
-            if (multipartFile != null && !multipartFile.isEmpty()) {
-                String originalName = multipartFile.getOriginalFilename();
-                if (originalName != null && originalName.contains(".")) {
-
-                    String extension = originalName.split("\\.")[1];
-
-                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
-                        byte[] byteImagen = multipartFile.getBytes();
-                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
-
-                        Usuario usuario = new Usuario();
-                        usuario.setIdUsuario(IdUsuario);
-                        usuario.setImagen(imagenBase64);
-
-                        RestTemplate restTemplate = new RestTemplate();
-                        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-                        HttpHeaders httpHeaders = new HttpHeaders();
-                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-                        HttpEntity<Usuario> imagenUpdate = new HttpEntity<>(usuario, httpHeaders);
-
-                        ResponseEntity<Result<Usuario>> responseEntityImagen = restTemplate.exchange(urlBase + "/usuario/imagen/" + IdUsuario,
-                                HttpMethod.PATCH,
-                                imagenUpdate,
-                                new ParameterizedTypeReference<Result<Usuario>>() {
-                        });
-
-                        if (responseEntityImagen.getStatusCode().value() == 200) {
-                            Result result = responseEntityImagen.getBody();
-                        } else {
-                            return "error";
-                        }
-                        redirectAttributes.addFlashAttribute("MsgSuccessImagen", "La imagen se actualizo correctamente");
-                    } else {
-                        redirectAttributes.addFlashAttribute("MsgErrorImagen", "Solo se pueden ingresar png o jpg");
-                    }
-
-                }
-            }
-
-        } catch (IOException ex) {
-            redirectAttributes.addFlashAttribute("MsgError", "Error al procesar la imagen" + ex.getMessage());
-        }
+//        try {
+//
+//            if (multipartFile != null && !multipartFile.isEmpty()) {
+//                String originalName = multipartFile.getOriginalFilename();
+//                if (originalName != null && originalName.contains(".")) {
+//
+//                    String extension = originalName.split("\\.")[1];
+//
+//                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
+//                        byte[] byteImagen = multipartFile.getBytes();
+//                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
+//
+//                        Usuario usuario = new Usuario();
+//                        usuario.setIdUsuario(IdUsuario);
+//                        usuario.setImagen(imagenBase64);
+//
+//                        RestTemplate restTemplate = new RestTemplate();
+//                        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+//                        HttpHeaders httpHeaders = new HttpHeaders();
+//                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+//
+//                        HttpEntity<Usuario> imagenUpdate = new HttpEntity<>(usuario, httpHeaders);
+//
+//                        ResponseEntity<Result<Usuario>> responseEntityImagen = restTemplate.exchange(urlBase + "/usuario/imagen/" + IdUsuario,
+//                                HttpMethod.PATCH,
+//                                imagenUpdate,
+//                                new ParameterizedTypeReference<Result<Usuario>>() {
+//                        });
+//
+//                        if (responseEntityImagen.getStatusCode().value() == 200) {
+//                            Result result = responseEntityImagen.getBody();
+//                        } else {
+//                            return "error";
+//                        }
+//                        redirectAttributes.addFlashAttribute("MsgSuccessImagen", "La imagen se actualizo correctamente");
+//                    } else {
+//                        redirectAttributes.addFlashAttribute("MsgErrorImagen", "Solo se pueden ingresar png o jpg");
+//                    }
+//
+//                }
+//            }
+//
+//        } catch (IOException ex) {
+//            redirectAttributes.addFlashAttribute("MsgError", "Error al procesar la imagen" + ex.getMessage());
+//        }
 
         return "redirect:/UsuarioIndex/Details/" + IdUsuario;
     }
+
 ////------------------------------------------------------------------ACTUALIZAR USUARIO DETAILS------------------------------------------------------------------//
 
     @PostMapping("/Details")
@@ -486,6 +559,8 @@ public class UsuarioController {
 
         return "redirect:/UsuarioIndex/Details/" + usuario.getIdUsuario();
     }
+    
+    
 ////------------------------------------------------------------------INSERTAR O ACTUALIZAR NUEVA DIRECCION DETAILS------------------------------------------------------------------//
 
     @PostMapping("/DetailsDireccion/{IdUsuario}")
