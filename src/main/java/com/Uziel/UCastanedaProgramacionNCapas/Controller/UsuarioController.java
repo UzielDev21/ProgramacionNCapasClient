@@ -481,62 +481,6 @@ public class UsuarioController {
         return "Error";
     }
 
-////------------------------------------------------------------------ACTUALIZAR IMAGEN------------------------------------------------------------------//
-                    //Ya no se utilizo//
-    
-    @PostMapping("/Details/Imagen/{IdUsuario}")
-    public String UpdateImagen(@PathVariable int IdUsuario, RedirectAttributes redirectAttributes,
-            @RequestParam("imagen") MultipartFile multipartFile) {
-
-//        try {
-//
-//            if (multipartFile != null && !multipartFile.isEmpty()) {
-//                String originalName = multipartFile.getOriginalFilename();
-//                if (originalName != null && originalName.contains(".")) {
-//
-//                    String extension = originalName.split("\\.")[1];
-//
-//                    if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png")) {
-//                        byte[] byteImagen = multipartFile.getBytes();
-//                        String imagenBase64 = Base64.getEncoder().encodeToString(byteImagen);
-//
-//                        Usuario usuario = new Usuario();
-//                        usuario.setIdUsuario(IdUsuario);
-//                        usuario.setImagen(imagenBase64);
-//
-//                        RestTemplate restTemplate = new RestTemplate();
-//                        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-//                        HttpHeaders httpHeaders = new HttpHeaders();
-//                        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-//
-//                        HttpEntity<Usuario> imagenUpdate = new HttpEntity<>(usuario, httpHeaders);
-//
-//                        ResponseEntity<Result<Usuario>> responseEntityImagen = restTemplate.exchange(urlBase + "/usuario/imagen/" + IdUsuario,
-//                                HttpMethod.PATCH,
-//                                imagenUpdate,
-//                                new ParameterizedTypeReference<Result<Usuario>>() {
-//                        });
-//
-//                        if (responseEntityImagen.getStatusCode().value() == 200) {
-//                            Result result = responseEntityImagen.getBody();
-//                        } else {
-//                            return "error";
-//                        }
-//                        redirectAttributes.addFlashAttribute("MsgSuccessImagen", "La imagen se actualizo correctamente");
-//                    } else {
-//                        redirectAttributes.addFlashAttribute("MsgErrorImagen", "Solo se pueden ingresar png o jpg");
-//                    }
-//
-//                }
-//            }
-//
-//        } catch (IOException ex) {
-//            redirectAttributes.addFlashAttribute("MsgError", "Error al procesar la imagen" + ex.getMessage());
-//        }
-
-        return "redirect:/UsuarioIndex/Details/" + IdUsuario;
-    }
-
 ////------------------------------------------------------------------ACTUALIZAR USUARIO DETAILS------------------------------------------------------------------//
 
     @PostMapping("/Details")
