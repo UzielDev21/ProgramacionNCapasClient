@@ -291,7 +291,7 @@
         <a th:href="@{/UsuarioIndex}">
             <button type="button" class="btn btn-outline-danger">Regresar</button>
         </a>
-<!-----------------------------------------------------------------------------ALERTAS DE USUARIO--------------------------------------------------------------------------->
+
         <script th:if="${MsgExito}" th:inline="javascript">
                        Swal.fire({
                            title: [[${MsgExito}]],
@@ -324,7 +324,6 @@
                        });
         </script>
 
-<!-----------------------------------------------------------------------------ACCIÓN DE EDITAR IMAGEN--------------------------------------------------------------------------->
         <script>
             
             document.getElementById("imagen").addEventListener("change", function(imagen){
@@ -341,79 +340,80 @@
                 }
                 
             });
-            </script>
+        </script>
             
-       <script th:inline="javascript">
-            $(document).ready(function(){
+        <script th:inline="javascript">
+             $(document).ready(function(){
 
-                $("#btnActualizarImagen").click(function(){
+                 $("#btnActualizarImagen").click(function(){
 
-                    const file = $("#imagen")[0].files[0];
+                     const file = $("#imagen")[0].files[0];
                     
-                    const token = /*[[${session.jwtToken}]]*/ null;
+                     const token = /*[[${session.jwtToken}]]*/ null;
+                     console.log("token en js: ", token);
                     
-                    if (!token) {
-                        window.window.href = "/Login?tokenExpirado=true";
-                        return;
-                    }
+                     if (!token) {
+                         window.location.href =/*[[@{/Login(tokenExpirado=true)}]]*/ "/Login?tokenExpirado=true";
+                         return;
+                     }
                     
-                    const reader = new FileReader();
+                     const reader = new FileReader();
 
-                    reader.onloadend = function(){
-                        const base64String = reader.result.split(",")[1];
+                     reader.onloadend = function(){
+                         const base64String = reader.result.split(",")[1];
 
-                        const IdUsuario = /*[[${UsuarioId.IdUsuario}]]*/ 0;
+                         const IdUsuario = /*[[${UsuarioId.IdUsuario}]]*/ 0;
 
-                        const dataToSend = {
-                            imagen: base64String
-                        };                  
-                        $.ajax({
-                            url: "http://localhost:8080/usuario/imagen/" + IdUsuario,
-                            type: "PATCH",
-                            data: JSON.stringify(dataToSend),
-                            contentType: "application/json",
-                            headers:{
-                                "Authorization" : "Bearer " + token
-                            },
-                            success: function(response){
-                                Swal.fire({
-                                    title: "¡¡Actualizada!!",
-                                    text: "La imagen se actualizó correctamente",
-                                    icon: "success"
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            },
-                            error: function(xhr){
+                         const dataToSend = {
+                             imagen: base64String
+                         };                  
+                         $.ajax({
+                             url: "http://localhost:8080/usuario/imagen/" + IdUsuario,
+                             type: "PATCH",
+                             data: JSON.stringify(dataToSend),
+                             contentType: "application/json",
+                             headers:{
+                                 "Authorization" : "Bearer " + token
+                             },
+                             success: function(response){
+                                 Swal.fire({
+                                     title: "¡¡Actualizada!!",
+                                     text: "La imagen se actualizó correctamente",
+                                     icon: "success"
+                                 }).then(() => {
+                                     location.reload();
+                                 });
+                             },
+                             error: function(xhr){
                                 
-                                if (xhr.status === 401 || xhr.staus === 403) {
-                                    windows.location.href = "/Login?tokenExpirado=true";
-                                    return;
-                                }
+                                 if (xhr.status === 401 || xhr.status === 403) {
+                                     window.location.href = "/Login?tokenExpirado=true";
+                                     return;
+                                 }
                                     
-                                Swal.fire({
-                                    title: "¡Error!",
-                                    text: "No se pudo actualizar la imagen: " + xhr.responseText,
-                                    icon: "error"
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            }
-                        });
-                    }; 
-                    reader.readAsDataURL(file);
-                });
-            });
-            </script>
+                                 Swal.fire({
+                                     title: "¡Error!",
+                                     text: "No se pudo actualizar la imagen: " + xhr.responseText,
+                                     icon: "error"
+                                 }).then(() => {
+                                     location.reload();
+                                 });
+                             }
+                         });
+                     }; 
+                     reader.readAsDataURL(file);
+                 });
+             });
+        </script>
             
             
-            <script th:inline="javascript">
+        <script th:inline="javascript">
             $(document).ready(function () {
                 $("#btnEditarImagen").click(function () {
                 $("#DatosImagen").toggle();
                     });
             });
-<!-----------------------------------------------------------------------------CARGA DE LOS DDL--------------------------------------------------------------------------->
+
                 $(document).ready(function () {
                     $("#ddlPais").change(function () {
                     $.ajax({
@@ -440,7 +440,6 @@
             });
             
             function cargaEstados(idPais, callback){
-            
             $.ajax({
                 url: "http://localhost:8080/estados/" + idPais,
                 type: "GET",
@@ -456,7 +455,6 @@
             });
             }
 
-<!-----------------------------------------------------------------------------DDL ESTADO--------------------------------------------------------------------------->
             $(document).ready(function () {
                 $("#ddlEstado").change(function () {
                     $.ajax({
@@ -477,10 +475,9 @@
                     });
                 });
             });
-            
-            
-            function cargaMunicipios(idEstado, callback){
-            
+
+
+           function cargaMunicipios(idEstado, callback){
             $.ajax({
                 url: "http://localhost:8080/municipios/" + idEstado,
                 type: "GET",
@@ -495,8 +492,7 @@
                 }
             });
             }
-            
-<!-----------------------------------------------------------------------------DDL MUNICIPIO--------------------------------------------------------------------------->
+
             $(document).ready(function () {
                 $("#ddlMunicipio").change(function () {
                     $.ajax({
@@ -519,7 +515,6 @@
             });
 
             function cargaColonias(idMunicipio, callback){
-            
             $.ajax({
                 url: "http://localhost:8080/colonias/" + idMunicipio,
                 type: "GET",
@@ -534,8 +529,7 @@
                 }
             });
             }
-            
-<!-----------------------------------------------------------------------------ELIMINAR DIRECCION--------------------------------------------------------------------------->
+
             $(document).on("click", ".btnEliminarDireccion", function () {
                 const idDireccionDelete = $(this).attr("data-id");
 
@@ -570,9 +564,7 @@
             });
             });
 
-            
             $(document).on("click", ".btnDireccionAdd", function() {
-                
                 $("#modalHeaderDireccion").css("background-color","22B7F2");
                 $("#btnEditarDireccionOld").hide();
                 $("#btnGuardarDireccionNew").show();
@@ -588,9 +580,8 @@
                 $("#ddlColonia").val(0);
                 
             });
-            
-<!-----------------------------------------------------------------------------CARGAR LOS DATOS EN EL MODAL--------------------------------------------------------------------------->
-$(document).on("click", ".btnEditarDireccion[data-id]", function () {
+
+            $(document).on("click",".btnEditarDireccion[data-id]", function () {
                 const idDireccion = $(this).attr("data-id");
                 console.log(idDireccion);
                 $.ajax({

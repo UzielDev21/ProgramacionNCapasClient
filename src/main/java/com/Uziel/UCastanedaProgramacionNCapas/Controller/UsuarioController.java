@@ -75,56 +75,42 @@ public class UsuarioController {
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
-        try {
+        RestTemplate restTemplateUsuario = new RestTemplate();
+        ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplateUsuario.exchange(urlBase + "/usuario",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
 
-            RestTemplate restTemplateUsuario = new RestTemplate();
-            ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplateUsuario.exchange(urlBase + "/usuario",
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<Result<Usuario>>() {
-            });
+        RestTemplate restTemplateRol = new RestTemplate();
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
 
-            RestTemplate restTemplateRol = new RestTemplate();
-            ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(urlBase + "/roles",
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<Result<Rol>>() {
-            });
+        if (responseEntityUsuario.getStatusCode().value() == 200
+                && responseEntityRol.getStatusCode().value() == 200) {
 
-            if (responseEntityUsuario.getStatusCode().value() == 200
-                    && responseEntityRol.getStatusCode().value() == 200) {
+            Result resultUsuario = responseEntityUsuario.getBody();
+            model.addAttribute("Usuarios", resultUsuario.objects);
 
-                Result resultUsuario = responseEntityUsuario.getBody();
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.objects);
 
-                model.addAttribute("Usuarios", resultUsuario.objects);
+            Usuario usuario = new Usuario();
+            usuario.setStatus(2);
+            model.addAttribute("Usuario", usuario);
 
-                Result resultRol = responseEntityRol.getBody();
-                model.addAttribute("Roles", resultRol.objects);
+            String user = (String) session.getAttribute("loggedUsername");
+            model.addAttribute("UsuarioLogueado", user);
 
-                Usuario usuario = new Usuario();
-                usuario.setStatus(2);
-                model.addAttribute("Usuario", usuario);
+            return "UsuarioIndex";
 
-                String user = (String) session.getAttribute("loggedUsername");
-                model.addAttribute("UsuarioLogueado", user);
-
-                return "UsuarioIndex";
-
-            } else {
-                return "Error";
-            }
-
-        } catch (HttpClientErrorException ex) {
-            HttpStatus status = (HttpStatus) ex.getStatusCode();
-
-            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
-                session.invalidate();
-                return "redirect:/Login?tokenExpirado=true";
-            }
-
+        } else {
+            return "Error";
         }
 
-        return "UsuarioIndex";
     }
 
 ////------------------------------------------------------------------ELIMINAR USUARIO------------------------------------------------------------------//
@@ -141,33 +127,22 @@ public class UsuarioController {
                 return "redirect:/Login";
             }
 
-            try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
+            HttpEntity<?> entity = new HttpEntity<>(headers);
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.set("Authorization", "Bearer " + token);
-                HttpEntity<?> entity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Result<Usuario>> responseEntity = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
+                    HttpMethod.DELETE,
+                    entity,
+                    new ParameterizedTypeReference<Result<Usuario>>() {
+            });
 
-                RestTemplate restTemplate = new RestTemplate();
-                ResponseEntity<Result<Usuario>> responseEntity = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
-                        HttpMethod.DELETE,
-                        entity,
-                        new ParameterizedTypeReference<Result<Usuario>>() {
-                });
-
-                if (responseEntity.getStatusCode().value() == 200) {
-                    result = responseEntity.getBody();
-                }
-
-                return "redirect:/UsuarioIndex";
-
-            } catch (HttpClientErrorException ex) {
-                HttpStatus status = (HttpStatus) ex.getStatusCode();
-
-                if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
-                    session.invalidate();
-                    return "redirect;/Login?tokenExpirado=true";
-                }
+            if (responseEntity.getStatusCode().value() == 200) {
+                result = responseEntity.getBody();
             }
+
+            return "redirect:/UsuarioIndex";
 
         } else {
             result.correct = false;
@@ -181,55 +156,47 @@ public class UsuarioController {
     public String BuscarUsuario(@ModelAttribute("Usuario") Usuario usuario, Model model, HttpSession session) {
 
         String token = (String) session.getAttribute("jwtToken");
+
+        if (token == null) {
+            return "redirect:/Login";
+        }
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + token);
 
-        try {
-            RestTemplate restTemplateUsuarios = new RestTemplate();
-            HttpEntity<Usuario> usuarioBuscar = new HttpEntity<>(usuario, headers);
-            ResponseEntity<Result<Usuario>> responseEntityUsuarioB = restTemplateUsuarios.exchange(urlBase + "/usuario/buscar",
-                    HttpMethod.POST,
-                    usuarioBuscar,
-                    new ParameterizedTypeReference<Result<Usuario>>() {
-            });
+        RestTemplate restTemplateUsuarios = new RestTemplate();
+        HttpEntity<Usuario> usuarioBuscar = new HttpEntity<>(usuario, headers);
+        ResponseEntity<Result<Usuario>> responseEntityUsuarioB = restTemplateUsuarios.exchange(urlBase + "/usuario/buscar",
+                HttpMethod.POST,
+                usuarioBuscar,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
 
-            HttpEntity<?> entityTokenRol = new HttpEntity<>(headers);
-            RestTemplate restTemplateRol = new RestTemplate();
-            ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(
-                    urlBase + "/roles",
-                    HttpMethod.GET,
-                    entityTokenRol,
-                    new ParameterizedTypeReference<Result<Rol>>() {
-            });
+        HttpEntity<?> entityTokenRol = new HttpEntity<>(headers);
+        RestTemplate restTemplateRol = new RestTemplate();
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplateRol.exchange(
+                urlBase + "/roles",
+                HttpMethod.GET,
+                entityTokenRol,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
 
-            if (responseEntityUsuarioB.getStatusCode().value() == 200
-                    && responseEntityRol.getStatusCode().value() == 200) {
+        if (responseEntityUsuarioB.getStatusCode().value() == 200
+                && responseEntityRol.getStatusCode().value() == 200) {
 
-                Result resultUsuario = responseEntityUsuarioB.getBody();
-                model.addAttribute("Usuarios", resultUsuario.objects);
+            Result resultUsuario = responseEntityUsuarioB.getBody();
+            model.addAttribute("Usuarios", resultUsuario.objects);
 
-                Result resultRol = responseEntityRol.getBody();
-                model.addAttribute("Roles", resultRol.objects);
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.objects);
 
-                model.addAttribute("Usuario", usuario);
+            model.addAttribute("Usuario", usuario);
 
-                return "UsuarioIndex";
+            return "UsuarioIndex";
 
-            } else {
-                return "error";
-            }
-        } catch (HttpClientErrorException ex) {
-            HttpStatus status = (HttpStatus) ex.getStatusCode();
-
-            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
-                session.invalidate();
-
-                return "redirect:/Login?tokenExpirado = true";
-            }
-
+        } else {
+            return "error";
         }
-
-        return null;
     }
 
 ////------------------------------------------------------------------CARGA MASIVA------------------------------------------------------------------//
@@ -418,7 +385,6 @@ public class UsuarioController {
     }
 
 ////------------------------------------------------------------------CARGA DETAILS------------------------------------------------------------------//
-
     @GetMapping("/Details/{IdUsuario}")
     public String Details(@PathVariable int IdUsuario, Model model, HttpSession session) {
 
@@ -432,62 +398,58 @@ public class UsuarioController {
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
-        try {
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Result<Usuario>>() {
+        });
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario/" + IdUsuario,
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<Result<Usuario>>() {
-            });
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
 
-            ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<Result<Rol>>() {
-            });
+        ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<Result<Pais>>() {
+        });
+        if (responseEntityUsuario.getStatusCode().value() == 200
+                && responseEntityRol.getStatusCode().value() == 200
+                && responseEntityPais.getStatusCode().value() == 200) {
 
-            ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<Result<Pais>>() {
-            });
-            if (responseEntityUsuario.getStatusCode().value() == 200
-                    && responseEntityRol.getStatusCode().value() == 200
-                    && responseEntityPais.getStatusCode().value() == 200) {
+            Result resultUsuario = responseEntityUsuario.getBody();
+            model.addAttribute("UsuarioId", resultUsuario.object);
 
-                Result resultUsuario = responseEntityUsuario.getBody();
-                model.addAttribute("UsuarioId", resultUsuario.object);
+            Result resultRol = responseEntityRol.getBody();
+            model.addAttribute("Roles", resultRol.objects);
 
-                Result resultRol = responseEntityRol.getBody();
-                model.addAttribute("Roles", resultRol.objects);
-
-                Result resultPais = responseEntityPais.getBody();
-                model.addAttribute("Paises", resultPais.objects);
-                model.addAttribute("Direccion", new Direccion());
-                return "UsuarioDetails";
-            } else {
-                return "Error";
-            }
-
-        } catch (HttpClientErrorException ex) {
-            HttpStatus status = (HttpStatus) ex.getStatusCode();
-
-            if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
-                session.invalidate();
-                return "redirect:/Login?tokenExpirado=true";
-            }
+            Result resultPais = responseEntityPais.getBody();
+            model.addAttribute("Paises", resultPais.objects);
+            model.addAttribute("Direccion", new Direccion());
+            return "UsuarioDetails";
+        } else {
+            return "Error";
         }
-        return "Error";
     }
 
 ////------------------------------------------------------------------ACTUALIZAR USUARIO DETAILS------------------------------------------------------------------//
-
     @PostMapping("/Details")
-    public String Update(@ModelAttribute("Usuario") Usuario usuario) {
+    public String Update(@ModelAttribute("Usuario") Usuario usuario, HttpSession session) {
+
+        String token = (String) session.getAttribute("jwtToken");
+
+        if (token == null) {
+            return "redirect:/Login";
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
 
         RestTemplate restTemplate = new RestTemplate();
-        HttpEntity<Usuario> usuarioUpdate = new HttpEntity<>(usuario);
+        HttpEntity<Usuario> usuarioUpdate = new HttpEntity<>(usuario, headers);
         ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario",
                 HttpMethod.PUT,
                 usuarioUpdate,
@@ -503,18 +465,27 @@ public class UsuarioController {
 
         return "redirect:/UsuarioIndex/Details/" + usuario.getIdUsuario();
     }
-    
-    
-////------------------------------------------------------------------INSERTAR O ACTUALIZAR NUEVA DIRECCION DETAILS------------------------------------------------------------------//
 
+////------------------------------------------------------------------INSERTAR O ACTUALIZAR NUEVA DIRECCION DETAILS------------------------------------------------------------------//
     @PostMapping("/DetailsDireccion/{IdUsuario}")
-    public String ActionDireccion(@PathVariable("IdUsuario") int IdUsuario, @ModelAttribute("Direccion") Direccion direccion,
-            BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+    public String ActionDireccion(@PathVariable("IdUsuario") int IdUsuario,
+            @ModelAttribute("Direccion") Direccion direccion,
+            BindingResult bindingResult, RedirectAttributes redirectAttributes,
+            Model model, HttpSession session) {
+
+        String token = (String) session.getAttribute("jwtToken");
+
+        if (token == null) {
+            return "redirect:/Login";
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
 
         if (direccion.getIdDireccion() == 0) {
 
             RestTemplate restTemplate = new RestTemplate();
-            HttpEntity<Direccion> direccionAdd = new HttpEntity<>(direccion);
+            HttpEntity<Direccion> direccionAdd = new HttpEntity<>(direccion, headers);
             ResponseEntity<Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdUsuario,
                     HttpMethod.POST,
                     direccionAdd,
@@ -529,7 +500,7 @@ public class UsuarioController {
 
         } else {
             RestTemplate restTemplate = new RestTemplate();
-            HttpEntity<Direccion> direccionUpdate = new HttpEntity<>(direccion);
+            HttpEntity<Direccion> direccionUpdate = new HttpEntity<>(direccion, headers);
             ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + direccion.getIdDireccion(),
                     HttpMethod.PUT,
                     direccionUpdate,
@@ -553,13 +524,18 @@ public class UsuarioController {
 
     @GetMapping("Details/Direccion/{IdDireccion}")
     @ResponseBody
-    public Result getDireccion(@PathVariable("IdDireccion") int IdDireccion) {
+    public Result getDireccion(@PathVariable("IdDireccion") int IdDireccion,
+            HttpSession session) {
+
+        String token = (String) session.getAttribute("jwtToken");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
 
         RestTemplate restTemplate = new RestTemplate();
-
         ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Direccion>>() {
         });
 
@@ -574,15 +550,22 @@ public class UsuarioController {
 
     @GetMapping("Details/Direccion/Delete/{IdDireccion}")
     @ResponseBody
-    public Result DireccionDelete(@PathVariable("IdDireccion") int IdDireccion, Model model) {
+    public Result DireccionDelete(@PathVariable("IdDireccion") int IdDireccion,
+            Model model, HttpSession session) {
 
         Result result = new Result();
 
         if (IdDireccion != 0) {
+
+            String token = (String) session.getAttribute("jwtToken");
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
+            HttpEntity<?> entity = new HttpEntity<>(headers);
+
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Result<Direccion>> responseEntity = restTemplate.exchange(urlBase + "/direccion/" + IdDireccion,
                     HttpMethod.DELETE,
-                    HttpEntity.EMPTY,
+                    entity,
                     new ParameterizedTypeReference<Result<Direccion>>() {
             });
 
@@ -598,22 +581,31 @@ public class UsuarioController {
         }
         return result;
     }
-////------------------------------------------------------------------FORMULARIO------------------------------------------------------------------//
 
+////------------------------------------------------------------------FORMULARIO------------------------------------------------------------------//
     @GetMapping("/Add")
-    public String Form(Model model) {
+    public String Form(Model model, HttpSession session) {
+
+        String token = (String) session.getAttribute("jwtToken");
+
+        if (token == null) {
+            return "redirect:/Login";
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
 
         RestTemplate restTemplate = new RestTemplate();
-
         ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Rol>>() {
         });
 
         ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Pais>>() {
         });
 
@@ -634,6 +626,7 @@ public class UsuarioController {
 
         return "UsuarioForm";
     }
+
 ////------------------------------------------------------------------Se quito la carga de DDL, se llenan conforme viene de la serializacion------------------------------------------------------------------//
 //    @GetMapping("Add/DireccionByCP/{CodigoPostal}")
 //    @ResponseBody
@@ -642,22 +635,31 @@ public class UsuarioController {
 //        return codigoPostalJPADAOImplementation.CodigoPostalGetDatosJPA(CodigoPostal);
 //    }
 ////------------------------------------------------------------------POST DEL FORMULARIO------------------------------------------------------------------//
-
     @PostMapping("/Add")
     public String Add(@ModelAttribute("Usuario") Usuario usuario, BindingResult bindingResult, Model model,
-            RedirectAttributes redirectAttributes, @RequestParam("imagenFile") MultipartFile multipartFile) {
+            RedirectAttributes redirectAttributes, @RequestParam("imagenFile") MultipartFile multipartFile,
+            HttpSession session) {
+
+        String token = (String) session.getAttribute("jwtToken");
+
+        if (token == null) {
+            return "redirect:/Login";
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
 
         RestTemplate restTemplate = new RestTemplate();
-
         ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(urlBase + "/roles",
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Rol>>() {
         });
 
         ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(urlBase + "/pais",
                 HttpMethod.GET,
-                HttpEntity.EMPTY,
+                entity,
                 new ParameterizedTypeReference<Result<Pais>>() {
         });
 
@@ -674,7 +676,7 @@ public class UsuarioController {
 
                 ResponseEntity<Result<Estado>> responseEntityEstado = restTemplate.exchange(urlBase + "/estados/" + usuario.Direcciones.get(0).Colonia.Municipio.Estado.Pais.getIdPais(),
                         HttpMethod.GET,
-                        HttpEntity.EMPTY,
+                        entity,
                         new ParameterizedTypeReference<Result<Estado>>() {
                 });
 
@@ -685,7 +687,7 @@ public class UsuarioController {
 
                     ResponseEntity<Result<Municipio>> responseEntityMunicipio = restTemplate.exchange(urlBase + "/municipios/" + usuario.Direcciones.get(0).Colonia.Municipio.Estado.getIdEstado(),
                             HttpMethod.GET,
-                            HttpEntity.EMPTY,
+                            entity,
                             new ParameterizedTypeReference<Result<Municipio>>() {
                     });
 
@@ -696,7 +698,7 @@ public class UsuarioController {
 
                         ResponseEntity<Result<Colonia>> responseEntityColonia = restTemplate.exchange(urlBase + "/estados/" + usuario.Direcciones.get(0).Colonia.Municipio.getIdMunicipio(),
                                 HttpMethod.GET,
-                                HttpEntity.EMPTY,
+                                entity,
                                 new ParameterizedTypeReference<Result<Colonia>>() {
                         });
 
@@ -726,7 +728,7 @@ public class UsuarioController {
             }
         }
 
-        HttpEntity<Usuario> usuarioAdd = new HttpEntity<>(usuario);
+        HttpEntity<Usuario> usuarioAdd = new HttpEntity<>(usuario, headers);
         HttpEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange(urlBase + "/usuario",
                 HttpMethod.POST,
                 usuarioAdd,
