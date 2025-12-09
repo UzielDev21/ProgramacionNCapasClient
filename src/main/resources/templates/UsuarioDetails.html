@@ -352,10 +352,10 @@
                      const token = /*[[${session.jwtToken}]]*/ null;
                      console.log("token en js: ", token);
                     
-                     if (!token) {
-                         window.location.href =/*[[@{/Login(tokenExpirado=true)}]]*/ "/Login?tokenExpirado=true";
-                         return;
-                     }
+//                     if (!token) {
+//                         window.location.href =/*[[@{/Login(tokenExpirado=true)}]]*/ "/Login?tokenExpirado=true";
+//                         return;
+//                     }
                     
                      const reader = new FileReader();
 
