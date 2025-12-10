@@ -12,6 +12,21 @@
     <body class="container" style="background-color: beige;" layout:fragment="body">
         <div class="col-12 text-center mb-2 mt-5 divEncabezado" id="divEncabezado">Detalles de Usuario</div>
 
+        <div class="position-absolute top-0 end-0 p-3">
+            <div class="d-grid gap-2">
+
+                <span class="fw-bold"
+                      th:text="${UsuarioLogueado != null ? UsuarioLogueado : 'Usuario'}">Usuario</span>
+
+                <form method="POST" th:action="@{/Login/Logout}">
+                    <button class="btn btn-outline-danger btn-sm" type="submit">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
         <div class="table-responsive divTabla" id="divTabla">
             <table class="table mb-0 tablaUsuarios" id="tableUsuarios">
 
@@ -217,7 +232,7 @@
                         <button type="button" class="btn btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
-<!-----------------------------------------------------------------------------FORMULARIO PARA EDITAR DIRECCIÓN--------------------------------------------------------------------------->                    
+                    <!-----------------------------------------------------------------------------FORMULARIO PARA EDITAR DIRECCIÓN--------------------------------------------------------------------------->                    
                     <form method="POST" th:action="@{/UsuarioIndex/DetailsDireccion/{IdUsuario} (IdUsuario = ${UsuarioId.IdUsuario})}" th:object="${Direccion}" enctype="multipart/form-data">
                         <div class="modal-body">
 
@@ -307,7 +322,7 @@
                                    draggable: true
                        });
         </script>
-        
+
         <script th:if="${MsgSuccessImagen}" th:inline="javascript">
                        Swal.fire({
                            title: [[${MsgSuccessImagen}]],
@@ -325,309 +340,282 @@
         </script>
 
         <script>
-            
+
             document.getElementById("imagen").addEventListener("change", function(imagen){
-                const file = imagen.target.files[0];
-                
-                if(file){
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(event){
-                        const preview = document.getElementById("ImgPreview");
-                        preview.src = event.target.result;
-                    }
-                    reader.readAsDataURL(file);
-                }
-                
+            const file = imagen.target.files[0];
+            if (file){
+            const reader = new FileReader();
+            reader.onload = function(event){
+            const preview = document.getElementById("ImgPreview");
+            preview.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+            }
+
             });
         </script>
-            
+
         <script th:inline="javascript">
-             $(document).ready(function(){
+            $(document).ready(function(){
 
-                 $("#btnActualizarImagen").click(function(){
+            $("#btnActualizarImagen").click(function(){
 
-                     const file = $("#imagen")[0].files[0];
-                    
-                     const token = /*[[${session.jwtToken}]]*/ null;
-                     console.log("token en js: ", token);
-                    
+            const file = $("#imagen")[0].files[0];
+            const token = /*[[${session.jwtToken}]]*/ null;
+            console.log("token en js: ", token);
 //                     if (!token) {
 //                         window.location.href =/*[[@{/Login(tokenExpirado=true)}]]*/ "/Login?tokenExpirado=true";
 //                         return;
 //                     }
-                    
-                     const reader = new FileReader();
 
-                     reader.onloadend = function(){
-                         const base64String = reader.result.split(",")[1];
+            const reader = new FileReader();
+            reader.onloadend = function(){
+            const base64String = reader.result.split(",")[1];
+            const IdUsuario = /*[[${UsuarioId.IdUsuario}]]*/ 0;
+            const dataToSend = {
+            imagen: base64String
+            };
+            $.ajax({
+            url: "http://localhost:8080/usuario/imagen/" + IdUsuario,
+                    type: "PATCH",
+                    data: JSON.stringify(dataToSend),
+                    contentType: "application/json",
+                    headers:{
+                    "Authorization" : "Bearer " + token
+                    },
+                    success: function(response){
+                    Swal.fire({
+                    title: "¡¡Actualizada!!",
+                            text: "La imagen se actualizó correctamente",
+                            icon: "success"
+                    }).then(() => {
+                    location.reload();
+                    });
+                    },
+                    error: function(xhr){
 
-                         const IdUsuario = /*[[${UsuarioId.IdUsuario}]]*/ 0;
+                    if (xhr.status === 401 || xhr.status === 403) {
+                    window.location.href = "/Login?tokenExpirado=true";
+                    return;
+                    }
 
-                         const dataToSend = {
-                             imagen: base64String
-                         };                  
-                         $.ajax({
-                             url: "http://localhost:8080/usuario/imagen/" + IdUsuario,
-                             type: "PATCH",
-                             data: JSON.stringify(dataToSend),
-                             contentType: "application/json",
-                             headers:{
-                                 "Authorization" : "Bearer " + token
-                             },
-                             success: function(response){
-                                 Swal.fire({
-                                     title: "¡¡Actualizada!!",
-                                     text: "La imagen se actualizó correctamente",
-                                     icon: "success"
-                                 }).then(() => {
-                                     location.reload();
-                                 });
-                             },
-                             error: function(xhr){
-                                
-                                 if (xhr.status === 401 || xhr.status === 403) {
-                                     window.location.href = "/Login?tokenExpirado=true";
-                                     return;
-                                 }
-                                    
-                                 Swal.fire({
-                                     title: "¡Error!",
-                                     text: "No se pudo actualizar la imagen: " + xhr.responseText,
-                                     icon: "error"
-                                 }).then(() => {
-                                     location.reload();
-                                 });
-                             }
-                         });
-                     }; 
-                     reader.readAsDataURL(file);
-                 });
-             });
+                    Swal.fire({
+                    title: "¡Error!",
+                            text: "No se pudo actualizar la imagen: " + xhr.responseText,
+                            icon: "error"
+                    }).then(() => {
+                    location.reload();
+                    });
+                    }
+            });
+            };
+            reader.readAsDataURL(file);
+            });
+            });
         </script>
-            
-            
+
+
         <script th:inline="javascript">
             $(document).ready(function () {
-                $("#btnEditarImagen").click(function () {
-                $("#DatosImagen").toggle();
-                    });
+            $("#btnEditarImagen").click(function () {
+            $("#DatosImagen").toggle();
             });
+            });
+            $(document).ready(function () {
+            $("#ddlPais").change(function () {
+            $.ajax({
+            type: 'GET',
+                    url: "http://localhost:8080/estados/" + $("#ddlPais").val(),
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
 
-                $(document).ready(function () {
-                    $("#ddlPais").change(function () {
-                    $.ajax({
-                        type: 'GET',
-                        url: "http://localhost:8080/estados/" + $("#ddlPais").val(),
-                        dataType: "json",
-                        success: function (data, textStatus, jqXHR) {
-
-                        $("#ddlEstado").empty();
-                        $("#ddlMunicipio").empty();
-                        $("#ddlColonia").empty();
-                        $("#ddlEstado").append("<option value=0> Escoge una opcion </option>");
-                        $("#ddlMunicipio").append("<option value=0> Escoge una opcion </option>");
-                        $("#ddlColonia").append("<option value=0> Escoge una opcion </option>");
-                            $.each(data.objects, function (i, estado) {
-                            $("#ddlEstado").append("<option value = " + estado.idEstado + ">" + estado.nombre + "</option>");
-                                            });
-                            },
+                    $("#ddlEstado").empty();
+                    $("#ddlMunicipio").empty();
+                    $("#ddlColonia").empty();
+                    $("#ddlEstado").append("<option value=0> Escoge una opcion </option>");
+                    $("#ddlMunicipio").append("<option value=0> Escoge una opcion </option>");
+                    $("#ddlColonia").append("<option value=0> Escoge una opcion </option>");
+                    $.each(data.objects, function (i, estado) {
+                    $("#ddlEstado").append("<option value = " + estado.idEstado + ">" + estado.nombre + "</option>");
+                    });
+                    },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        alert("No hay información :c ");
-                        }
-                    });
-                });
+                    alert("No hay información :c ");
+                    }
             });
-            
+            });
+            });
             function cargaEstados(idPais, callback){
             $.ajax({
-                url: "http://localhost:8080/estados/" + idPais,
-                type: "GET",
-                dataType: "json",
-                success: function(data, textStatus, jqXHR){
+            url: "http://localhost:8080/estados/" + idPais,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data, textStatus, jqXHR){
                     $("#ddlEstado").empty().append('<option value=0> Escoge una opcion </option>')
-                    
-                    $.each(data.objects, function(i, estado){
-                       $("#ddlEstado").append("<option value=" + estado.idEstado + ">" + estado.nombre + "</option>"); 
-                    });
-                    if(callback) callback();
-                }
+
+                            $.each(data.objects, function(i, estado){
+                            $("#ddlEstado").append("<option value=" + estado.idEstado + ">" + estado.nombre + "</option>");
+                            });
+                    if (callback) callback();
+                    }
             });
             }
 
             $(document).ready(function () {
-                $("#ddlEstado").change(function () {
-                    $.ajax({
-                        type: 'GET',
-                        url: "http://localhost:8080/municipios/" + $("#ddlEstado").val(),
-                        dataType: "json",
-                        success: function (data, textStatus, jqXHR) {
-
-                            $("#ddlMunicipio").empty();
-                            $("#ddlMunicipio").append("<option value=0> Escoge una opcion </option>");
-                            $.each(data.objects, function (i, municipio) {
-                                $("#ddlMunicipio").append("<option value = " + municipio.idMunicipio + ">" + municipio.nombre + "</option>");
-                            });
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            alert("No hay información :c ");
-                        }
-                    });
-                });
-            });
-
-
-           function cargaMunicipios(idEstado, callback){
+            $("#ddlEstado").change(function () {
             $.ajax({
-                url: "http://localhost:8080/municipios/" + idEstado,
-                type: "GET",
-                dataType: "json",
-                success: function(data, textStatus, jqXHR){
-                    $("#ddlMunicipio").empty().append('<option value=0> Escoge una opcion </option>');
-                    
-                    $.each(data.objects, function(i, municipio){
-                       $("#ddlMunicipio").append("<option value=" + municipio.idMunicipio + ">" + municipio.nombre + "</option>"); 
+            type: 'GET',
+                    url: "http://localhost:8080/municipios/" + $("#ddlEstado").val(),
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
+
+                    $("#ddlMunicipio").empty();
+                    $("#ddlMunicipio").append("<option value=0> Escoge una opcion </option>");
+                    $.each(data.objects, function (i, municipio) {
+                    $("#ddlMunicipio").append("<option value = " + municipio.idMunicipio + ">" + municipio.nombre + "</option>");
                     });
-                    if(callback) callback();
-                }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                    alert("No hay información :c ");
+                    }
+            });
+            });
+            });
+            function cargaMunicipios(idEstado, callback){
+            $.ajax({
+            url: "http://localhost:8080/municipios/" + idEstado,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data, textStatus, jqXHR){
+                    $("#ddlMunicipio").empty().append('<option value=0> Escoge una opcion </option>');
+                    $.each(data.objects, function(i, municipio){
+                    $("#ddlMunicipio").append("<option value=" + municipio.idMunicipio + ">" + municipio.nombre + "</option>");
+                    });
+                    if (callback) callback();
+                    }
             });
             }
 
             $(document).ready(function () {
-                $("#ddlMunicipio").change(function () {
-                    $.ajax({
-                        type: 'GET',
-                        url: "http://localhost:8080/colonias/" + $("#ddlMunicipio").val(),
-                        dataType: "json",
-                        success: function (data, textStatus, jqXHR) {
+            $("#ddlMunicipio").change(function () {
+            $.ajax({
+            type: 'GET',
+                    url: "http://localhost:8080/colonias/" + $("#ddlMunicipio").val(),
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
 
-                            $("#ddlColonia").empty();
-                            $("#ddlColonia").append("<option value=0> Escoge una opcion </option>");
-                            $.each(data.objects, function (i, colonia) {
-                                $("#ddlColonia").append("<option value = " + colonia.idColonia + ">" + colonia.nombre + "</option>");
-                            });
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            alert("No hay información :c ");
-                        }
+                    $("#ddlColonia").empty();
+                    $("#ddlColonia").append("<option value=0> Escoge una opcion </option>");
+                    $.each(data.objects, function (i, colonia) {
+                    $("#ddlColonia").append("<option value = " + colonia.idColonia + ">" + colonia.nombre + "</option>");
                     });
-                });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                    alert("No hay información :c ");
+                    }
             });
-
+            });
+            });
             function cargaColonias(idMunicipio, callback){
             $.ajax({
-                url: "http://localhost:8080/colonias/" + idMunicipio,
-                type: "GET",
-                dataType: "json",
-                success: function(data, textStatus, jqXHR){
+            url: "http://localhost:8080/colonias/" + idMunicipio,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data, textStatus, jqXHR){
                     $("#ddlColonia").empty().append('<option value=0> Escoge una opcion </option>')
-                    
-                    $.each(data.objects, function(i, colonia){
-                       $("#ddlColonia").append("<option value=" + colonia.idColonia + ">" + colonia.nombre + "</option>"); 
-                    });
-                    if(callback) callback();
-                }
+
+                            $.each(data.objects, function(i, colonia){
+                            $("#ddlColonia").append("<option value=" + colonia.idColonia + ">" + colonia.nombre + "</option>");
+                            });
+                    if (callback) callback();
+                    }
             });
             }
 
             $(document).on("click", ".btnEliminarDireccion", function () {
-                const idDireccionDelete = $(this).attr("data-id");
-
-                Swal.fire({
-                    text: "¿Seguro que quieres eliminar la direccion?",
+            const idDireccionDelete = $(this).attr("data-id");
+            Swal.fire({
+            text: "¿Seguro que quieres eliminar la direccion?",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
                     confirmButtonText: "Sí, borrar!",
                     cancelButtonText: "Cancelar"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "/UsuarioIndex/Details/Direccion/Delete/" + idDireccionDelete,
-                            type: 'get',
-                            dataType: "json",
-                            success: function (data, textStatus, jqXHR) {
-                                Swal.fire({
-                                    title: "¡Eliminada!",
-                                    text: "La direccion se elimino",
-                                    icon: "success"
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            },
-                            error: function (jqXHR, textStatus, errorThrown) {
-                                Swal.fire("Error", "No se pudo eliminar la dirección", "error");
-                            }
-                        });
+            }).then((result) => {
+            if (result.isConfirmed) {
+            $.ajax({
+            url: "/UsuarioIndex/Details/Direccion/Delete/" + idDireccionDelete,
+                    type: 'get',
+                    dataType: "json",
+                    success: function (data, textStatus, jqXHR) {
+                    Swal.fire({
+                    title: "¡Eliminada!",
+                            text: "La direccion se elimino",
+                            icon: "success"
+                    }).then(() => {
+                    location.reload();
+                    });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                    Swal.fire("Error", "No se pudo eliminar la dirección", "error");
                     }
             });
+            }
             });
-
+            });
             $(document).on("click", ".btnDireccionAdd", function() {
-                $("#modalHeaderDireccion").css("background-color","22B7F2");
-                $("#btnEditarDireccionOld").hide();
-                $("#btnGuardarDireccionNew").show();
-                
-                $("#IdDireccion").val("");
-                $("#Calle").val("");
-                $("#NumeroInterior").val("");
-                $("#NumeroExterior").val("");
-                
-                $("#ddlPais").val(0);
-                $("#ddlEstado").val(0);
-                $("#ddlMunicipio").val(0);
-                $("#ddlColonia").val(0);
-                
+            $("#modalHeaderDireccion").css("background-color", "22B7F2");
+            $("#btnEditarDireccionOld").hide();
+            $("#btnGuardarDireccionNew").show();
+            $("#IdDireccion").val("");
+            $("#Calle").val("");
+            $("#NumeroInterior").val("");
+            $("#NumeroExterior").val("");
+            $("#ddlPais").val(0);
+            $("#ddlEstado").val(0);
+            $("#ddlMunicipio").val(0);
+            $("#ddlColonia").val(0);
             });
-
-            $(document).on("click",".btnEditarDireccion[data-id]", function () {
-                const idDireccion = $(this).attr("data-id");
-                console.log(idDireccion);
-                $.ajax({
-                    url: "/UsuarioIndex/Details/Direccion/" + idDireccion,
+            $(document).on("click", ".btnEditarDireccion[data-id]", function () {
+            const idDireccion = $(this).attr("data-id");
+            console.log(idDireccion);
+            $.ajax({
+            url: "/UsuarioIndex/Details/Direccion/" + idDireccion,
                     type: "GET",
                     dataType: "json",
                     success: function (data, textStatus, jqXHR) {
-                        const direccion = data.object;
-
-                        $("#modalHeaderDireccion").css("background-color","orange");
-                        $("#btnGuardarDireccionNew").hide();
-                        $("#btnEditarDireccionOld").show();
-                        
-                        $("#IdDireccion").val(direccion.idDireccion);
-                        $("#Calle").val(direccion.calle);
-                        $("#NumeroInterior").val(direccion.numeroInterior);
-                        $("#NumeroExterior").val(direccion.numeroExterior);
-                        
-                        const idPais = direccion.colonia.municipio.estado.pais.idPais;
-                        const idEstado = direccion.colonia.municipio.estado.idEstado;
-                        const idMunicipio = direccion.colonia.municipio.idMunicipio;
-                        const idColonia = direccion.colonia.idColonia;
-                        
-                        $("#ddlPais").val(idPais);
-                        
-                        cargaEstados(idPais, function(){
-                            $("#ddlEstado").val(idEstado);
-                            
-                            cargaMunicipios(idEstado, function(){
-                                $("#ddlMunicipio").val(idMunicipio);
-                                
-                                cargaColonias(idMunicipio, function(){
-                                    $("#ddlColonia").val(idColonia);
-                                });
-                            });
-                        });
-                        
-                        $("#FormDireccion").modal("show");
+                    const direccion = data.object;
+                    $("#modalHeaderDireccion").css("background-color", "orange");
+                    $("#btnGuardarDireccionNew").hide();
+                    $("#btnEditarDireccionOld").show();
+                    $("#IdDireccion").val(direccion.idDireccion);
+                    $("#Calle").val(direccion.calle);
+                    $("#NumeroInterior").val(direccion.numeroInterior);
+                    $("#NumeroExterior").val(direccion.numeroExterior);
+                    const idPais = direccion.colonia.municipio.estado.pais.idPais;
+                    const idEstado = direccion.colonia.municipio.estado.idEstado;
+                    const idMunicipio = direccion.colonia.municipio.idMunicipio;
+                    const idColonia = direccion.colonia.idColonia;
+                    $("#ddlPais").val(idPais);
+                    cargaEstados(idPais, function(){
+                    $("#ddlEstado").val(idEstado);
+                    cargaMunicipios(idEstado, function(){
+                    $("#ddlMunicipio").val(idMunicipio);
+                    cargaColonias(idMunicipio, function(){
+                    $("#ddlColonia").val(idColonia);
+                    });
+                    });
+                    });
+                    $("#FormDireccion").modal("show");
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        alert("No hay datos");
+                    alert("No hay datos");
                     }
-                });
+            });
             });
         </script>
-  
-        
+
+
     </body>
 </html>

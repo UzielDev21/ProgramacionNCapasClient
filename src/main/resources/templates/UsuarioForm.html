@@ -46,6 +46,21 @@
         <div class="container">
             <div class="encabezado"><h1 class=""><i class="bi bi-person-plus"> Registrar Usuario</i></h1></div>
 
+            <div class="position-absolute top-0 end-0 p-3">
+                <div class="d-grid gap-2">
+
+                    <span class="fw-bold"
+                          th:text="${UsuarioLogueado != null ? UsuarioLogueado : 'Usuario'}">Usuario</span>
+
+                    <form method="POST" th:action="@{/Login/Logout}">
+                        <button class="btn btn-outline-danger btn-sm" type="submit">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
             <form method="POST" th:object="${Usuario}" th:action="@{Add}" enctype="multipart/form-data"> 
                 <div class="row g-3 align-item-start">
 
@@ -237,9 +252,9 @@
         <script>
             $(document).ready(function () {
                 $("#ddlPais").change(function () {
-                    
+
                     const token = /*[[${session.jwtToken}]]*/ null;
-                    
+
                     $.ajax({
                         type: 'GET',
                         url: "http://localhost:8080/estados/" + $("#ddlPais").val(),

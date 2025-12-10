@@ -27,7 +27,6 @@ public class LoginController {
 
     @GetMapping
     public String Login() {
-
         return "Login";
     }
 
@@ -65,7 +64,57 @@ public class LoginController {
 
                     session.setAttribute("jwtToken", jwt);
                     session.setAttribute("loggedUsername", userName);
-                    return "redirect:/UsuarioIndex";
+
+                    Map<String, Object> claims = decodeJwt(jwt);
+
+                    if (claims != null) {
+
+                        String rol = (String) claims.get("rol");
+                        Integer idUsuario = null;
+                        Object idObject = claims.get("idUsuario");
+
+                        if (idObject instanceof Integer) {
+
+                            idUsuario = (Integer) idObject;
+
+                        } else if (idObject instanceof Number) {
+
+                            idUsuario = ((Number) (idObject)).intValue();
+
+                        }
+
+                        session.setAttribute("rol", rol);
+                        session.setAttribute("idUsuario", idUsuario);
+
+                        if ("administrador".equalsIgnoreCase(rol)
+                                || "Gerente".equalsIgnoreCase(rol)
+                                || "Lider".equalsIgnoreCase(rol)) {
+
+                            return "redirect:/UsuarioIndex";
+
+                        } else if ("Colaborador".equalsIgnoreCase(rol)) {
+
+                            return "redirect:/UsuarioIndex/Add";
+
+                        } else if ("Tercero".equalsIgnoreCase(rol)) {
+
+                            if (idUsuario != null) {
+
+                                return "redirect:/UsuarioIndex/Details/" + idUsuario;
+
+                            } else {
+                                model.addAttribute("error", "no se pudo obtener id del usuario del token");
+                                return "Login";
+                            }
+
+                        } else {
+                            model.addAttribute("error", "El rol del usuario no es reconocido");
+                            return "Login";
+                        }
+                    } else {
+                        model.addAttribute("error", "no se pudo leer el token correctamente");
+                        return "Login";
+                    }
 
                 } else {
 
@@ -76,14 +125,10 @@ public class LoginController {
                         msgError = result.errorMessage;
 
                     } else {
-
                         msgError = "Error la iniciar sesión";
-
                     }
-
                     model.addAttribute("error", msgError);
                     return "Login";
-
                 }
 
             } else if (status == 401) {
@@ -160,5 +205,27 @@ public class LoginController {
         }
 
         return "redirect:/Login";
+    }
+
+    private Map<String, Object> decodeJwt(String jwt) {
+
+        try {
+            String[] partes = jwt.split("\\.");
+
+            if (partes.length < 2) {
+                return null;
+            }
+
+            String payload = new String(
+                    java.util.Base64.getUrlDecoder().decode(partes[1]),
+                    java.nio.charset.StandardCharsets.UTF_8
+            );
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.readValue(payload, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
+            });
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }
