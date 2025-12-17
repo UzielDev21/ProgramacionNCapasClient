@@ -645,7 +645,7 @@ public class UsuarioController {
             model.addAttribute("Usuario", usuario);
             
             String user = (String) session.getAttribute("loggedUsername");
-            model.addAttribute("UsuarioLogeado", user);
+            model.addAttribute("UsuarioLogueado", user);
         } else {
             return "error";
         }

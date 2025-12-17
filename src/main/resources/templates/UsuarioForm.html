@@ -249,16 +249,21 @@
 
 
 
-        <script>
+        <script th:inline="javascript">
+            //estados
             $(document).ready(function () {
                 $("#ddlPais").change(function () {
 
                     const token = /*[[${session.jwtToken}]]*/ null;
-
+                    console.log("token en js: ", token)
+                    
                     $.ajax({
                         type: 'GET',
                         url: "http://localhost:8080/estados/" + $("#ddlPais").val(),
                         dataType: "json",
+                        headers:{
+                            "Authorization" : "Bearer " + token
+                        },
                         success: function (data, textStatus, jqXHR) {
 
                             $("#ddlEstado").empty();
@@ -278,12 +283,18 @@
                 });
             });
 
+            //Municipios
             $(document).ready(function () {
                 $("#ddlEstado").change(function () {
+                    
+                    const token = /*[[${session.jwtToken}]]*/ null;
                     $.ajax({
                         type: 'GET',
                         url: "http://localhost:8080/municipios/" + $("#ddlEstado").val(),
                         dataType: "json",
+                        headers: {
+                            "Authorization" : "Bearer " + token
+                        },
                         success: function (data, textStatus, jqXHR) {
 
                             $("#ddlMunicipio").empty();
@@ -299,12 +310,18 @@
                 });
             });
 
+            //Colonias
             $(document).ready(function () {
                 $("#ddlMunicipio").change(function () {
+                    
+                    const token = /*[[${session.jwtToken}]]*/ null;
                     $.ajax({
                         type: 'GET',
                         url: "http://localhost:8080/colonias/" + $("#ddlMunicipio").val(),
                         dataType: "json",
+                        headers:{
+                            "Authorization" : "Bearer "+ token
+                        },
                         success: function (data, textStatus, jqXHR) {
 
                             $("#ddlColonia").empty();
@@ -323,10 +340,15 @@
             //CodigoPostal llenado automatico de los DDL
             $(document).ready(function () {
                 $("#CodigoPostal").blur(function () {
+                    
+                    const token = /*[[${session.jwtToken}]]*/ null;
                     $.ajax({
                         url: "/UsuarioIndex/Add/DireccionByCP/" + $(this).val(),
                         type: "GET",
                         datatype: "json",
+                        headers: {
+                            "Authorization" : "Bearer " + token
+                        },
                         success: function (data, textStatus, jqXHR) {
                             console.log(data.objects);
                             //Llenar las colonias 
