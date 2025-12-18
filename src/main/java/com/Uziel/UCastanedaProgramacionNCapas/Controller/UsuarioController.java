@@ -70,18 +70,18 @@ public class UsuarioController {
         if (token == null) {
             return "redirect:/Login";
         }
-        
+
         String rol = (String) session.getAttribute("rol");
         Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-        
+
         if (rol == null) {
             return "redirect:/Login";
         }
-        
+
         if ("Colaborador".equalsIgnoreCase(rol)) {
             return "redirect:/UsuarioIndex/Add";
         }
-        
+
         if ("Tercero".equalsIgnoreCase(rol)) {
             if (idUsuario != null) {
                 return "redirect:/UsuarioIndex/Details/" + idUsuario;
@@ -210,6 +210,9 @@ public class UsuarioController {
             model.addAttribute("Roles", resultRol.objects);
 
             model.addAttribute("Usuario", usuario);
+
+            String user = (String) session.getAttribute("loggedUsername");
+            model.addAttribute("UsuarioLogueado", user);
 
             return "UsuarioIndex";
 
@@ -441,17 +444,17 @@ public class UsuarioController {
 
             Result resultUsuario = responseEntityUsuario.getBody();
             model.addAttribute("UsuarioId", resultUsuario.object);
-            
+
             Result resultRol = responseEntityRol.getBody();
             model.addAttribute("Roles", resultRol.objects);
 
             Result resultPais = responseEntityPais.getBody();
             model.addAttribute("Paises", resultPais.objects);
             model.addAttribute("Direccion", new Direccion());
-            
+
             String user = (String) session.getAttribute("loggedUsername");
-            model.addAttribute("UsuarioLogeado", user);
-            
+            model.addAttribute("UsuarioLogueado", user);
+
             return "UsuarioDetails";
         } else {
             return "Error";
@@ -643,7 +646,7 @@ public class UsuarioController {
 
             Usuario usuario = new Usuario();
             model.addAttribute("Usuario", usuario);
-            
+
             String user = (String) session.getAttribute("loggedUsername");
             model.addAttribute("UsuarioLogueado", user);
         } else {

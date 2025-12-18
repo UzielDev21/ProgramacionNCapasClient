@@ -1,0 +1,38 @@
+.container{
+    background-color: #fff;
+    color:#000;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 900px;
+    margin: 50px auto;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+img{
+    max-width: 200px;
+    height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+}
+
+label{
+    font-family: sans-serif;
+    margin-right: 10px;
+}
+
+.btnRegresar{
+    position: relative;
+    top: 20px;
+    left: 20px;
+}
+
+.correct{
+    border-color: greenyellow;
+    border-width: 2px;
+}
+
+.error{
+    border-color: red;
+    border-width: 2px;
+}

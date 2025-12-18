@@ -14,8 +14,6 @@
             integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
         crossorigin="anonymous"></script>
 
-        
-
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Navbar</a>
@@ -46,6 +44,42 @@
                 </ul>
             </div>
         </div>
+
+        <!--usuario que esta en sesión-->
+        <div class="position-absolute top-0 end-0 p-3">
+            <div class="dropdown">
+                
+                <!-- El nombre del usuario -->
+                <a class="text-decoration-none dropdown-toggle fw-bold usuario" 
+                   role="button" 
+                   id="dropdownMenuLink" 
+                   data-bs-toggle="dropdown" 
+                   aria-expanded="false"
+                   style="font-size: 16px; color: #333;">
+                    <i class="bi bi-person-circle"></i> 
+                    <span th:text="${UsuarioLogueado != null ? UsuarioLogueado : 'Usuario'}">Usuario</span>
+                </a>
+
+                <!-- Menú desplegable -->
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuLink">
+                    <li>
+                        <a class="dropdown-item" href="/usuario/perfil">
+                            <i class="bi bi-info-circle me-2"></i>Información
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <!-- Formulario de Logout dentro del menú -->
+                        <form method="POST" th:action="@{/Login/Logout}" class="px-2">
+                            <button class="dropdown-item text-danger d-flex align-items-center" type="submit">
+                                <i class="bi bi-box-arrow-right me-2"></i> Salir
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
     </nav>
 </head>
 <body layout:fragment="body">
