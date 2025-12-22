@@ -13,7 +13,7 @@
 }
 
 .tablaUsuarios{
-    border-collapse: separate; 
+    border-collapse: separate;
     border-spacing: 3px;
 }
 
@@ -37,7 +37,7 @@
 
 /**********************************SECCION IMAGEN*********************************************/
 .tdImg{
-    height: 350px ; 
+    height: 350px ;
 }
 
 .contenedorImg{
@@ -70,5 +70,5 @@ img{
 
 /***************************************************MODAL USUARIO******************************************************/
 .divFormDatos{
-    
+
 }

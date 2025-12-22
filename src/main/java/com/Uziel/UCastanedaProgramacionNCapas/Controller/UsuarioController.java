@@ -51,6 +51,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 //import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -574,7 +575,7 @@ public class UsuarioController {
     }
 ////------------------------------------------------------------------ELIMINAR DIRECCION DETAILS------------------------------------------------------------------//
 
-    @GetMapping("Details/Direccion/Delete/{IdDireccion}")
+    @DeleteMapping("Details/Direccion/Delete/{IdDireccion}")
     @ResponseBody
     public Result DireccionDelete(@PathVariable("IdDireccion") int IdDireccion,
             Model model, HttpSession session) {
